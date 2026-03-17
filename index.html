@@ -1,0 +1,1552 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="theme-color" content="#060d1a"/>
+<title>Pre-operacional · Comfrut</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --bg:#060d1a; --bg2:#0d1829; --bg3:#132035;
+  --surface:#fff; --surf2:#f4f7fb; --surf3:#e8eef6;
+  --border:#dce5f0; --border2:#c8d6e8;
+  --ink:#0a1628; --ink2:#1e3352; --ink3:#3a5a80;
+  --mist:#7a96b4; --fog:#a8bcd0;
+  --lime:#00e5aa; --lime2:#00c695; --lime3:#00a87e;
+  --sky:#3b9eff; --amber:#ffb020; --red:#ff4b4b; --red2:#d63535;
+  --ok:#00c695; --ok-bg:#e6faf4; --ok-txt:#007a5a;
+  --nc:#ff4b4b; --nc-bg:#fff0f0; --nc-txt:#b52626;
+  --na-bg:#f2f5f8; --na-txt:#6b8099;
+  --r-xs:4px; --r-sm:8px; --r-md:14px; --r-lg:20px; --r-xl:28px;
+  --sh-xs:0 1px 3px rgba(6,13,26,.06);
+  --sh-sm:0 2px 8px rgba(6,13,26,.08);
+  --sh-md:0 6px 24px rgba(6,13,26,.12);
+  --sh-lg:0 16px 48px rgba(6,13,26,.20);
+  --display:'Syne',sans-serif; --mono:'JetBrains Mono',monospace; --body:'Plus Jakarta Sans',sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:var(--body);background:var(--surf2);color:var(--ink);min-height:100vh;overflow-x:hidden;-webkit-font-smoothing:antialiased;padding-bottom:90px;font-size:16px}
+
+/* ── TOPBAR ── */
+.topbar{position:sticky;top:0;z-index:200;background:var(--bg);height:58px;padding:0 16px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 1px 0 rgba(255,255,255,.04),var(--sh-lg)}
+.tb-l{display:flex;align-items:center;gap:10px}
+.tb-logo{width:30px;height:30px;border-radius:7px;background:linear-gradient(135deg,var(--lime),#1a8fff);display:flex;align-items:center;justify-content:center;font-family:var(--display);font-weight:800;font-size:11px;color:var(--bg)}
+.tb-name{font-family:var(--display);font-size:13px;font-weight:700;color:#fff;letter-spacing:-.3px}
+.tb-sub{font-family:var(--mono);font-size:9px;color:rgba(255,255,255,.3);margin-top:1px}
+.tb-r{display:flex;align-items:center;gap:6px}
+.tb-badge{font-family:var(--mono);font-size:9px;font-weight:600;padding:3px 9px;border-radius:12px;background:rgba(0,229,170,.12);border:1px solid rgba(0,229,170,.2);color:var(--lime);display:none}
+.tb-cfg{width:28px;height:28px;border-radius:7px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;font-size:13px;cursor:pointer;color:#fff}
+.prog-rail{height:2px;background:rgba(255,255,255,.05)}
+.prog-bar{height:2px;background:linear-gradient(90deg,var(--lime),var(--sky));transition:width .5s cubic-bezier(.4,0,.2,1);width:0}
+
+/* ── SCREENS ── */
+.screen{display:none;animation:fadeUp .22s ease both}
+.screen.active{display:block}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+/* ══════════════════════════════════════
+   HOME SCREEN
+══════════════════════════════════════ */
+.home-hero{background:var(--bg);padding:24px 16px 20px;position:relative;overflow:hidden}
+.home-hero::before{content:'';position:absolute;top:-60px;right:-60px;width:200px;height:200px;border-radius:50%;background:radial-gradient(circle,rgba(0,229,170,.07) 0%,transparent 70%);pointer-events:none}
+.hero-eye{font-family:var(--mono);font-size:9px;font-weight:600;color:var(--lime);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px}
+.hero-title{font-family:var(--display);font-size:24px;font-weight:800;color:#fff;line-height:1.1;letter-spacing:-.6px;margin-bottom:6px}
+.hero-title em{color:var(--lime);font-style:normal}
+.hero-desc{font-size:12px;color:rgba(255,255,255,.38);line-height:1.6;margin-bottom:22px}
+
+/* TURNO SELECTOR */
+.sel-label{font-family:var(--mono);font-size:9px;font-weight:600;color:rgba(255,255,255,.38);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:8px}
+.turno-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:18px}
+.turno-card{background:rgba(255,255,255,.04);border:1.5px solid rgba(255,255,255,.08);border-radius:var(--r-md);padding:12px 8px;cursor:pointer;transition:all .18s;text-align:center}
+.turno-card:active{transform:scale(.95)}
+.turno-card.sel{background:rgba(0,229,170,.1);border-color:var(--lime);box-shadow:0 0 0 3px rgba(0,229,170,.12)}
+.turno-icon{font-size:20px;margin-bottom:4px}
+.turno-name{font-family:var(--display);font-size:12px;font-weight:700;color:rgba(255,255,255,.6);transition:color .18s}
+.turno-card.sel .turno-name{color:var(--lime)}
+
+
+/* SCHEME SELECTOR */
+.scheme-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:18px}
+.scheme-card{background:rgba(255,255,255,.04);border:1.5px solid rgba(255,255,255,.08);border-radius:var(--r-md);padding:12px 13px;cursor:pointer;transition:all .18s;display:flex;align-items:center;gap:10px}
+.scheme-card:active{transform:scale(.97)}
+.scheme-card.sel{border-color:var(--lime);background:rgba(0,229,170,.08);box-shadow:0 0 0 3px rgba(0,229,170,.1)}
+.scheme-chk{width:20px;height:20px;border-radius:5px;border:1.5px solid rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0;transition:all .18s;background:rgba(255,255,255,.04)}
+.scheme-card.sel .scheme-chk{background:var(--lime);border-color:var(--lime);color:var(--bg);font-weight:800}
+.scheme-info{}
+.scheme-name{font-family:var(--display);font-size:12px;font-weight:700;color:rgba(255,255,255,.7);line-height:1.2}
+.scheme-card.sel .scheme-name{color:#fff}
+.scheme-cnt{font-family:var(--mono);font-size:9px;color:rgba(255,255,255,.28);margin-top:2px}
+
+.home-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:4px}
+.h-stat{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:var(--r-sm);padding:9px 7px;text-align:center}
+.h-stat-v{font-family:var(--display);font-size:17px;font-weight:800;color:#fff}
+.h-stat-l{font-size:9px;color:rgba(255,255,255,.28);margin-top:2px;font-weight:500}
+
+.btn-start{width:100%;padding:17px;background:linear-gradient(135deg,var(--lime2),#1a9aff);border:none;border-radius:var(--r-md);font-family:var(--display);font-size:16px;font-weight:800;color:var(--bg);cursor:pointer;box-shadow:0 8px 24px rgba(0,198,149,.22);letter-spacing:-.3px;transition:all .2s}
+.btn-start:active{transform:scale(.98)}
+.btn-start:disabled{opacity:.35;cursor:not-allowed;transform:none;box-shadow:none}
+.home-btns{display:flex;gap:8px;margin-top:10px}
+.home-btn-sm{flex:1;padding:11px;border-radius:var(--r-sm);border:1.5px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);font-family:var(--display);font-size:11px;font-weight:700;color:rgba(255,255,255,.5);cursor:pointer;transition:all .18s}
+.home-btn-sm:active{background:rgba(255,255,255,.08)}
+
+/* ══════════════════════════════════════
+   DATOS SCREEN
+══════════════════════════════════════ */
+.step-hd{background:var(--bg2);padding:13px 16px 11px;position:sticky;top:54px;z-index:100;border-bottom:1px solid rgba(255,255,255,.05)}
+.trail{display:flex;align-items:center;gap:5px;margin-bottom:5px}
+.td{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.15);transition:all .3s}
+.td.done{background:var(--lime2)}
+.td.active{background:var(--lime);width:18px;border-radius:3px}
+.step-title{font-family:var(--display);font-size:17px;font-weight:700;color:#fff;letter-spacing:-.3px}
+.step-sub{font-family:var(--mono);font-size:10px;color:rgba(255,255,255,.4);margin-top:3px}
+
+.form-pad{padding:16px 14px}
+.field{margin-bottom:14px}
+.fl{font-family:var(--mono);font-size:9px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--mist);margin-bottom:6px;display:flex;align-items:center;gap:4px}
+.req{color:var(--amber)}
+.field input,.field select,.field textarea{width:100%;padding:12px 14px;background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r-sm);font-family:var(--body);font-size:15px;color:var(--ink);transition:border .18s,box-shadow .18s;-webkit-appearance:none;appearance:none;box-shadow:var(--sh-xs)}
+.field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:var(--sky);box-shadow:0 0 0 3px rgba(59,158,255,.12)}
+.field textarea{resize:none;min-height:76px;line-height:1.6}
+.field select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%237a96b4' stroke-width='2.5'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 13px center;padding-right:38px}
+.fr2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+
+/* ══════════════════════════════════════
+   CHECKLIST
+══════════════════════════════════════ */
+.chk-list{background:var(--surface)}
+.chk-item{display:flex;align-items:center;padding:13px 14px;border-bottom:1px solid var(--surf3);gap:10px;transition:background .12s;min-height:56px}
+.chk-item:last-child{border-bottom:none}
+.chk-item.is-c{background:#f0fdf8}
+.chk-item.is-nc{background:var(--nc-bg)}
+.chk-item.is-na{background:#f0f9ff}
+.item-name{flex:1;font-size:13px;font-weight:500;color:var(--ink2);line-height:1.35;min-width:0}
+.cnc{display:flex;gap:3px;flex-shrink:0}
+.cb{height:42px;min-width:46px;border-radius:var(--r-sm);border:1.5px solid var(--border);background:var(--surf2);font-family:var(--mono);font-size:13px;font-weight:700;color:var(--fog);cursor:pointer;transition:all .12s;display:flex;align-items:center;justify-content:center}
+.cb:active{transform:scale(.88)}
+.cb.C{background:var(--ok-bg);border-color:var(--ok);color:var(--ok-txt);box-shadow:0 0 0 2px rgba(0,198,149,.1)}
+.cb.NC{background:var(--nc-bg);border-color:var(--nc);color:var(--nc-txt);box-shadow:0 0 0 2px rgba(255,75,75,.1)}
+.cb.NA{background:#e8f4fb;border-color:#5b8db8;color:#1e3352;font-weight:700;box-shadow:0 0 0 2px rgba(91,141,184,.15)}
+
+/* NC DRAWER — with photo */
+.nc-drw{display:none;padding:10px 14px 13px;background:linear-gradient(var(--nc-bg),#fff9f9);border-bottom:1px solid #fad4d4}
+.nc-drw.open{display:block;animation:sdDown .18s ease}
+@keyframes sdDown{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
+.nc-lbl{font-family:var(--mono);font-size:9px;font-weight:600;color:var(--red2);letter-spacing:1px;text-transform:uppercase;margin-bottom:7px;display:flex;align-items:center;gap:5px}
+.nc-drw input[type=text]{width:100%;padding:13px 12px;border:1.5px solid #f5bcbc;border-radius:var(--r-sm);font-family:var(--body);font-size:15px;color:var(--ink);background:#fff;margin-bottom:10px}
+.nc-drw input[type=text]:focus{outline:none;border-color:var(--red)}
+
+/* Photo capture */
+.photo-area{margin-top:4px}
+.photo-btn{display:flex;align-items:center;gap:8px;padding:9px 12px;border-radius:var(--r-sm);border:1.5px dashed #f5bcbc;background:rgba(255,75,75,.04);cursor:pointer;transition:all .18s;width:100%}
+.photo-btn:active{background:rgba(255,75,75,.08)}
+.photo-btn-icon{font-size:18px}
+.photo-btn-text{font-family:var(--body);font-size:12px;font-weight:600;color:var(--red2)}
+.photo-btn-sub{font-size:10px;color:var(--fog);margin-top:1px}
+.photo-preview{margin-top:8px;display:none;position:relative}
+.photo-preview img{width:100%;max-height:180px;object-fit:cover;border-radius:var(--r-sm);border:1.5px solid #f5bcbc}
+.photo-remove{position:absolute;top:6px;right:6px;width:24px;height:24px;border-radius:50%;background:rgba(0,0,0,.6);border:none;color:#fff;font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.photo-input{display:none}
+
+.sec-row{padding:7px 14px 5px;background:var(--surf2);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:6px}
+.sec-line{width:3px;height:14px;border-radius:2px}
+.sec-txt{font-family:var(--display);font-size:11px;font-weight:700;color:var(--ink2)}
+
+/* ══════════════════════════════════════
+   SUMMARY
+══════════════════════════════════════ */
+.sum-hero{background:var(--bg);padding:20px 16px 18px;display:flex;align-items:center;gap:14px}
+.sum-circle{width:62px;height:62px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:26px;border:2px solid rgba(255,255,255,.08)}
+.sum-circle.ok{background:rgba(0,198,149,.15);border-color:rgba(0,198,149,.3)}
+.sum-circle.nc{background:rgba(255,75,75,.15);border-color:rgba(255,75,75,.3)}
+.sum-t{font-family:var(--display);font-size:17px;font-weight:800;color:#fff;letter-spacing:-.4px}
+.sum-s{font-size:12px;color:rgba(255,255,255,.38);margin-top:3px}
+
+.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:14px}
+.st-card{border-radius:var(--r-md);padding:13px 10px;text-align:center;border:1.5px solid transparent}
+.st-card.ok{background:var(--ok-bg);border-color:rgba(0,198,149,.2)}
+.st-card.nc{background:var(--nc-bg);border-color:rgba(255,75,75,.15)}
+.st-card.na{background:var(--na-bg);border-color:var(--border)}
+.st-num{font-family:var(--display);font-size:28px;font-weight:800;line-height:1}
+.st-card.ok .st-num{color:var(--ok-txt)}
+.st-card.nc .st-num{color:var(--nc-txt)}
+.st-card.na .st-num{color:var(--na-txt)}
+.st-lbl{font-family:var(--mono);font-size:8px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;color:var(--mist);margin-top:4px}
+
+.nc-panel{margin:0 14px 12px;background:var(--nc-bg);border:1.5px solid rgba(255,75,75,.2);border-radius:var(--r-md);overflow:hidden}
+.nc-ph{background:var(--red);padding:10px 14px;display:flex;align-items:center;justify-content:space-between}
+.nc-ph-t{font-family:var(--display);font-size:12px;font-weight:700;color:#fff}
+.nc-ph-c{font-family:var(--mono);font-size:11px;color:rgba(255,255,255,.8)}
+.nc-pi{padding:9px 14px;border-bottom:1px solid rgba(255,75,75,.1)}
+.nc-pi:last-child{border-bottom:none}
+.nc-pi-name{font-size:12px;font-weight:600;color:var(--nc-txt)}
+.nc-pi-sec{font-family:var(--mono);font-size:9px;color:var(--fog);margin-top:1px}
+.nc-pi-obs{font-size:11px;color:var(--ink3);margin-top:3px;font-style:italic}
+.nc-pi-photo{margin-top:6px}
+.nc-pi-photo img{width:100%;max-height:120px;object-fit:cover;border-radius:6px;border:1px solid rgba(255,75,75,.2)}
+
+.ok-banner{margin:0 14px 12px;background:var(--ok-bg);border:1.5px solid rgba(0,198,149,.25);border-radius:var(--r-md);padding:14px 16px;display:flex;align-items:center;gap:10px}
+.ok-b-i{font-size:22px}
+.ok-b-t{font-family:var(--display);font-size:13px;font-weight:700;color:var(--ok-txt)}
+
+/* ══════════════════════════════════════
+   ACTION BUTTONS
+══════════════════════════════════════ */
+.act-grp{padding:0 14px 14px}
+.act-lbl{font-family:var(--mono);font-size:9px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--mist);margin-bottom:7px;margin-top:12px}
+.act-btn{width:100%;display:flex;align-items:center;gap:14px;padding:16px 16px;border-radius:var(--r-md);border:none;font-family:var(--body);cursor:pointer;transition:all .18s;margin-bottom:10px;text-align:left}
+.act-btn:active{transform:scale(.98)}
+.a-icon{width:46px;height:46px;border-radius:11px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:22px}
+.a-body{flex:1}
+.a-title{font-family:var(--display);font-size:15px;font-weight:700;line-height:1.2}
+.a-sub{font-size:12px;opacity:.65;margin-top:3px}
+.a-arr{font-size:14px;opacity:.3;flex-shrink:0}
+
+.abt-primary{background:var(--ink);color:#fff;box-shadow:var(--sh-md);border:1px solid rgba(255,255,255,.06)}
+.abt-primary .a-icon{background:rgba(255,255,255,.08)}
+.abt-wa{background:linear-gradient(135deg,#075e54,#128c7e);color:#fff;box-shadow:0 4px 16px rgba(7,94,84,.3)}
+.abt-wa .a-icon{background:rgba(255,255,255,.12)}
+.abt-nc-wa{background:linear-gradient(135deg,#b52626,var(--red));color:#fff;box-shadow:0 4px 16px rgba(181,38,38,.28);position:relative;overflow:hidden}
+.abt-nc-wa::after{content:'🚨 ALERTA';position:absolute;top:7px;right:10px;font-family:var(--mono);font-size:8px;font-weight:600;background:rgba(255,255,255,.15);padding:2px 6px;border-radius:8px;color:rgba(255,255,255,.8)}
+.abt-nc-wa .a-icon{background:rgba(255,255,255,.12)}
+.abt-pdf{background:linear-gradient(135deg,var(--ink2),var(--ink3));color:#fff;box-shadow:var(--sh-sm);border:1px solid rgba(255,255,255,.05)}
+.abt-pdf .a-icon{background:rgba(255,255,255,.08)}
+.abt-light{background:var(--surface);color:var(--ink);border:1.5px solid var(--border);box-shadow:var(--sh-xs)}
+.abt-light .a-icon{background:var(--surf2)}
+
+/* ══════════════════════════════════════
+   NAV BAR
+══════════════════════════════════════ */
+.nav{position:fixed;bottom:0;left:0;right:0;z-index:150;padding:10px 14px max(10px,env(safe-area-inset-bottom));background:rgba(255,255,255,.96);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-top:1px solid var(--border);display:flex;gap:8px;box-shadow:0 -8px 32px rgba(6,13,26,.07)}
+.nb{border:none;border-radius:var(--r-sm);font-family:var(--display);font-size:13px;font-weight:700;cursor:pointer;padding:13px 16px;transition:all .18s;letter-spacing:-.2px}
+.nb:active{transform:scale(.97)}
+.nb-back{flex:0 0 auto;background:var(--surf2);color:var(--ink3);border:1.5px solid var(--border);padding:13px 18px}
+.nb-next{flex:1;background:var(--ink);color:#fff;box-shadow:0 4px 16px rgba(6,13,26,.2)}
+.nb-next.go{background:linear-gradient(135deg,var(--lime2),#1a9aff);color:var(--bg);box-shadow:0 4px 20px rgba(0,198,149,.3)}
+
+/* ══════════════════════════════════════
+   HISTORY + CONFIG
+══════════════════════════════════════ */
+.hist-pad{padding:14px}
+.hist-item{background:var(--surface);border-radius:var(--r-md);border:1px solid var(--border);border-left:4px solid var(--ok);box-shadow:var(--sh-xs);margin-bottom:10px;overflow:hidden}
+.hist-item.nc{border-left-color:var(--nc)}
+.hi-head{padding:12px 14px;display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.hi-date{font-family:var(--display);font-size:12px;font-weight:700;color:var(--ink2)}
+.hi-meta{font-family:var(--mono);font-size:9px;color:var(--mist);margin-top:2px}
+.hi-badge{font-family:var(--mono);font-size:9px;font-weight:600;flex-shrink:0;padding:3px 8px;border-radius:10px}
+.hi-badge.ok{background:var(--ok-bg);color:var(--ok-txt)}
+.hi-badge.nc{background:var(--nc-bg);color:var(--nc-txt)}
+.hi-ncs{padding:0 14px 10px;font-size:11px;color:var(--mist)}
+
+.cfg-pad{padding:14px}
+.cfg-blk{background:var(--surface);border-radius:var(--r-md);border:1px solid var(--border);padding:16px;margin-bottom:12px;box-shadow:var(--sh-xs)}
+.cfg-title{font-family:var(--display);font-size:13px;font-weight:700;color:var(--ink);margin-bottom:14px;display:flex;align-items:center;gap:6px}
+.cfg-help{font-size:11px;color:var(--mist);line-height:1.6;margin-top:5px}
+.cfg-status{display:flex;align-items:center;gap:6px;margin-top:8px;font-size:11px;font-weight:600}
+.sd{width:7px;height:7px;border-radius:50%;background:var(--border2)}
+.sd.ok{background:var(--ok)}
+.btn-save{width:100%;padding:13px;border-radius:var(--r-sm);border:none;background:var(--ink);color:#fff;font-family:var(--display);font-size:13px;font-weight:700;cursor:pointer;box-shadow:var(--sh-md);margin-top:4px}
+
+/* ══════════════════════════════════════
+   PDF MODAL
+══════════════════════════════════════ */
+.pdf-modal{display:none;position:fixed;inset:0;z-index:500;flex-direction:column;background:var(--bg)}
+.pdf-modal.open{display:flex}
+.pdf-topbar{background:var(--bg);height:52px;padding:0 14px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,.06);flex-shrink:0}
+.pdf-tb-title{font-family:var(--display);font-size:13px;font-weight:700;color:#fff}
+.pdf-close{background:rgba(255,255,255,.08);border:none;color:#fff;width:30px;height:30px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:15px;cursor:pointer}
+.pdf-content{flex:1;overflow-y:auto;display:flex;align-items:center;justify-content:center;padding:20px 14px}
+.pdf-card{background:#fff;border-radius:var(--r-md);width:100%;max-width:400px;padding:24px;box-shadow:var(--sh-lg);text-align:center}
+.pdf-card-icon{font-size:52px;margin-bottom:14px}
+.pdf-card-title{font-family:var(--display);font-size:18px;font-weight:800;color:var(--ink);margin-bottom:6px}
+.pdf-card-sub{font-size:13px;color:var(--mist);line-height:1.6;margin-bottom:16px}
+.pdf-fname{font-family:var(--mono);font-size:10px;color:var(--lime3);background:var(--ok-bg);padding:8px 12px;border-radius:var(--r-sm);border:1px solid rgba(0,198,149,.2);word-break:break-all;text-align:left;margin-bottom:16px}
+.pdf-actions{display:flex;flex-direction:column;gap:8px}
+.pdf-act{padding:13px;border-radius:var(--r-sm);border:none;font-family:var(--display);font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px}
+.pdf-act.dl{background:var(--lime);color:var(--bg)}
+.pdf-act.mail{background:#1565c0;color:#fff}
+.pdf-act.wap{background:#25d366;color:#fff}
+.pdf-act.close-a{background:var(--surf2);color:var(--ink3);border:1.5px solid var(--border)}
+
+/* ══════════════════════════════════════
+   BOTTOM SHEET + TOAST + SPINNER
+══════════════════════════════════════ */
+.sh-ov{display:none;position:fixed;inset:0;z-index:400;background:rgba(6,13,26,.6);backdrop-filter:blur(4px);align-items:flex-end}
+.sh-ov.open{display:flex;animation:fadeBg .2s ease}
+@keyframes fadeBg{from{opacity:0}to{opacity:1}}
+.sh-body{background:var(--surface);border-radius:var(--r-xl) var(--r-xl) 0 0;width:100%;max-width:480px;margin:0 auto;padding:18px 18px max(18px,env(safe-area-inset-bottom));animation:shUp .28s cubic-bezier(.34,1.4,.64,1);max-height:85vh;overflow-y:auto}
+@keyframes shUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.sh-handle{width:32px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 14px}
+.sh-title{font-family:var(--display);font-size:17px;font-weight:800;color:var(--ink);margin-bottom:4px;letter-spacing:-.3px}
+.sh-sub{font-size:12px;color:var(--mist);line-height:1.5;margin-bottom:14px}
+.sh-close{width:100%;padding:13px;border-radius:var(--r-sm);border:1.5px solid var(--border);background:var(--surf2);font-family:var(--display);font-size:13px;font-weight:700;color:var(--ink3);cursor:pointer;margin-top:8px}
+
+.toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(8px);background:var(--ink);color:#fff;padding:10px 18px;border-radius:20px;font-family:var(--body);font-size:12px;font-weight:500;opacity:0;transition:all .28s;z-index:600;white-space:nowrap;pointer-events:none;box-shadow:var(--sh-lg);border:1px solid rgba(255,255,255,.06)}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+.spin-ov{display:none;position:fixed;inset:0;z-index:700;background:rgba(6,13,26,.72);backdrop-filter:blur(6px);align-items:center;justify-content:center;flex-direction:column;gap:14px}
+.spin-ov.show{display:flex}
+.spin{width:40px;height:40px;border:2.5px solid rgba(255,255,255,.1);border-top-color:var(--lime);border-radius:50%;animation:spin .65s linear infinite}
+.spin-t{font-family:var(--display);font-size:13px;font-weight:700;color:rgba(255,255,255,.55)}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.empty-s{text-align:center;padding:48px 24px;color:var(--mist)}
+.empty-i{font-size:40px;margin-bottom:10px}
+.empty-t{font-size:13px;line-height:1.7}
+
+/* ── FIRMA DIGITAL ── */
+.sig-wrap{background:var(--surface);border-radius:var(--r-md);border:1.5px solid var(--border);overflow:hidden;margin-bottom:14px}
+.sig-header{padding:9px 14px;background:var(--surf2);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.sig-title{font-family:var(--mono);font-size:9px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--mist)}
+.sig-clear{font-family:var(--body);font-size:11px;color:var(--mist);background:none;border:none;cursor:pointer;padding:2px 6px;border-radius:4px}
+.sig-clear:hover{color:var(--red);background:var(--nc-bg)}
+.sig-canvas{display:block;width:100%;touch-action:none;cursor:crosshair;background:#fff}
+.sig-hint{text-align:center;padding:6px;font-size:10px;color:var(--mist);font-family:var(--mono);border-top:1px solid var(--border)}
+
+/* WA button inside NC drawer */
+.nc-wa-btn{
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  width:100%;padding:12px 14px;margin-top:8px;
+  background:linear-gradient(135deg,#075e54,#128c7e);
+  border:none;border-radius:var(--r-sm);
+  font-family:var(--display);font-size:13px;font-weight:700;
+  color:#fff;cursor:pointer;transition:all .18s;
+  letter-spacing:-.2px;
+}
+.nc-wa-btn:active{transform:scale(.97);opacity:.9}
+.nc-wa-btn-icon{font-size:17px}
+
+/* WA Contact Picker */
+.wa-picker-overlay{display:none;position:fixed;inset:0;z-index:600;background:rgba(6,13,26,.65);backdrop-filter:blur(4px);align-items:flex-end;justify-content:center}
+.wa-picker-overlay.open{display:flex;animation:fadeBg .2s ease}
+.wa-picker-sheet{background:var(--surface);border-radius:var(--r-xl) var(--r-xl) 0 0;width:100%;max-width:480px;padding:18px 16px max(18px,env(safe-area-inset-bottom));animation:shUp .28s cubic-bezier(.34,1.4,.64,1);max-height:80vh;overflow-y:auto}
+.wa-picker-handle{width:32px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 14px}
+.wa-picker-title{font-family:var(--display);font-size:16px;font-weight:800;color:var(--ink);margin-bottom:4px}
+.wa-picker-sub{font-size:12px;color:var(--mist);margin-bottom:16px;line-height:1.5}
+.wa-contact-btn{display:flex;align-items:center;gap:12px;width:100%;padding:14px 14px;border-radius:var(--r-md);border:1.5px solid var(--border);background:var(--surf2);cursor:pointer;margin-bottom:8px;transition:all .15s;text-align:left}
+.wa-contact-btn:active{transform:scale(.97);background:var(--surf3)}
+.wa-contact-avatar{width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#075e54,#128c7e);display:flex;align-items:center;justify-content:center;font-family:var(--display);font-size:15px;font-weight:800;color:#fff;flex-shrink:0}
+.wa-contact-name{font-family:var(--display);font-size:14px;font-weight:700;color:var(--ink)}
+.wa-contact-num{font-family:var(--mono);font-size:11px;color:var(--mist);margin-top:2px}
+.wa-contact-arr{font-size:18px;margin-left:auto;color:#25d366}
+.wa-picker-cancel{width:100%;padding:13px;border-radius:var(--r-sm);border:1.5px solid var(--border);background:var(--surf2);font-family:var(--display);font-size:14px;font-weight:600;color:var(--mist);cursor:pointer;margin-top:4px}
+/* Contact config row */
+.wa-cfg-row{display:flex;gap:8px;align-items:center;margin-bottom:10px;background:var(--surf2);border-radius:var(--r-sm);padding:10px 12px;border:1px solid var(--border)}
+.wa-cfg-row input{flex:1;padding:8px 10px;border:1px solid var(--border);border-radius:6px;font-size:14px;background:var(--surface);color:var(--ink)}
+.wa-cfg-row input:focus{outline:none;border-color:var(--sky)}
+.wa-cfg-del{width:32px;height:32px;border-radius:6px;border:none;background:var(--nc-bg);color:var(--nc-txt);cursor:pointer;flex-shrink:0;font-size:16px;display:flex;align-items:center;justify-content:center}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="tb-l">
+    <div class="tb-logo">CF</div>
+    <div><div class="tb-name">Pre-operacional</div><div class="tb-sub">CF/CR-ASC-017-RG001 · v08</div></div>
+  </div>
+  <div class="tb-r">
+    <div class="tb-badge" id="tbBadge"></div>
+    <div class="tb-cfg" onclick="goTo('config')">⚙</div>
+  </div>
+</div>
+<div class="prog-rail"><div class="prog-bar" id="pBar"></div></div>
+
+<!-- ██████ SCREEN: HOME ██████ -->
+<div class="screen active" id="sc-home">
+  <div class="home-hero">
+    <div class="hero-eye">Comfrut · Sistema de Gestión Integrado</div>
+    <div class="hero-title">Control <em>Pre-operacional</em></div>
+    <div class="hero-desc">Selecciona el turno y los esquemas a inspeccionar para iniciar.</div>
+
+    <!-- TURNO -->
+    <div class="sel-label">① Selecciona el turno</div>
+    <div class="turno-grid">
+      <div class="turno-card" data-t="Manana" onclick="selTurno(this)">
+        <div class="turno-icon">🌅</div>
+        <div class="turno-name">Manana</div>
+        
+      </div>
+      <div class="turno-card" data-t="Tarde" onclick="selTurno(this)">
+        <div class="turno-icon">☀️</div>
+        <div class="turno-name">Tarde</div>
+        
+      </div>
+      <div class="turno-card" data-t="Noche" onclick="selTurno(this)">
+        <div class="turno-icon">🌙</div>
+        <div class="turno-name">Noche</div>
+        
+      </div>
+    </div>
+
+    <!-- ESQUEMAS -->
+    <div class="sel-label">② Selecciona los esquemas a revisar</div>
+    <div class="scheme-grid">
+      <div class="scheme-card" data-s="s1" onclick="selEsq(this)">
+        <div class="scheme-chk" id="chk-s1">✓</div>
+        <div class="scheme-info"><div class="scheme-name">Túnel Continuo</div><div class="scheme-cnt">Esquema 1 · 21 ítems</div></div>
+      </div>
+      <div class="scheme-card" data-s="s2" onclick="selEsq(this)">
+        <div class="scheme-chk" id="chk-s2">✓</div>
+        <div class="scheme-info"><div class="scheme-name">Esquema 3</div><div class="scheme-cnt">14 ítems</div></div>
+      </div>
+      <div class="scheme-card" data-s="s3" onclick="selEsq(this)">
+        <div class="scheme-chk" id="chk-s3">✓</div>
+        <div class="scheme-info"><div class="scheme-name">Tomra</div><div class="scheme-cnt">Esquema 4 · 11 ítems</div></div>
+      </div>
+      <div class="scheme-card" data-s="s4" onclick="selEsq(this)">
+        <div class="scheme-chk" id="chk-s4">✓</div>
+        <div class="scheme-info"><div class="scheme-name">Sala Proceso</div><div class="scheme-cnt">15 ítems</div></div>
+      </div>
+    </div>
+
+    <div class="home-stats">
+      <div class="h-stat"><div class="h-stat-v" id="hsTurno">—</div><div class="h-stat-l">Último turno</div></div>
+      <div class="h-stat"><div class="h-stat-v" id="hsReg">0</div><div class="h-stat-l">Registros</div></div>
+      <div class="h-stat"><div class="h-stat-v" id="hsSh" style="font-size:14px">—</div><div class="h-stat-l">Excel</div></div>
+    </div>
+  </div>
+
+  <div style="padding:14px 14px 0">
+    <button class="btn-start" id="btnStart" onclick="iniciar()" disabled>Selecciona turno y esquema</button>
+    <div class="home-btns">
+      <button class="home-btn-sm" onclick="goTo('hist')">📁 Historial</button>
+      <button class="home-btn-sm" onclick="goTo('config')">⚙ Configurar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ██████ SCREEN: DATOS ██████ -->
+<div class="screen" id="sc-datos">
+  <div class="step-hd">
+    <div class="trail" id="trail1"></div>
+    <div class="step-title">Datos del turno</div>
+    <div class="step-sub">Completa antes de iniciar</div>
+  </div>
+  <div class="form-pad">
+    <div class="field"><div class="fl">Supervisor <span class="req">*</span></div>
+      <input type="text" id="f_sup" placeholder="Nombre completo"/></div>
+    <div class="fr2">
+      <div class="field"><div class="fl">Fecha <span class="req">*</span></div>
+        <input type="date" id="f_fecha"/></div>
+      <div class="field"><div class="fl">Hora <span class="req">*</span></div>
+        <input type="time" id="f_hora"/></div>
+    </div>
+    <div class="field"><div class="fl">Turno</div>
+      <input type="text" id="f_turno_ro" readonly style="background:var(--surf2);color:var(--ink3);font-size:14px"/></div>
+    <div class="field"><div class="fl">Esquemas</div>
+      <input type="text" id="f_esq_ro" readonly style="background:var(--surf2);color:var(--ink3);font-size:13px"/></div>
+    <div class="field"><div class="fl">SKU Procesado <span class="req">*</span></div>
+      <input type="text" id="f_sku" placeholder="Ej: UVA-RED-GLOBE-8MM"/></div>
+
+  </div>
+</div>
+
+<!-- ██████ SCREEN: CHECKLIST ██████ -->
+<div class="screen" id="sc-check">
+  <div class="step-hd">
+    <div class="trail" id="trail2"></div>
+    <div class="step-title" id="chkTitle">Inspección</div>
+    <div class="step-sub" id="chkSub"></div>
+  </div>
+  <div class="chk-list" id="chkList"></div>
+</div>
+
+<!-- ██████ SCREEN: RESUMEN ██████ -->
+<div class="screen" id="sc-resumen">
+  <div class="sum-hero">
+    <div class="sum-circle ok" id="sumCircle">✅</div>
+    <div><div class="sum-t" id="sumTitle">Inspección completa</div><div class="sum-s" id="sumSub"></div></div>
+  </div>
+  <div class="stats-row" id="statsRow"></div>
+  <div id="ncPanel"></div>
+  <div style="padding:0 14px 4px">
+    <textarea id="f_obs" placeholder="Observaciones generales del turno (opcional)..." style="width:100%;padding:11px 13px;border:1.5px solid var(--border);border-radius:var(--r-sm);font-family:var(--body);font-size:14px;resize:none;min-height:70px;background:var(--surface);color:var(--ink)"></textarea>
+  </div>
+  <div class="act-grp">
+    <div id="ncWaWrap" style="display:none">
+      <div class="act-lbl">🚨 Alerta de No Conformidad</div>
+      <button class="act-btn abt-nc-wa" onclick="alertaNC()">
+        <div class="a-icon">📢</div>
+        <div class="a-body"><div class="a-title">Enviar alerta al grupo</div><div class="a-sub">WhatsApp → Jefe de Área + Mantención</div></div>
+        <div class="a-arr">→</div>
+      </button>
+    </div>
+    <div class="act-lbl">Guardar registro</div>
+    <button class="act-btn abt-primary" onclick="guardarYPDF()">
+      <div class="a-icon">📊</div>
+      <div class="a-body"><div class="a-title">Guardar en Excel + PDF</div><div class="a-sub">Registra en Excel OneDrive y genera el documento oficial</div></div>
+      <div class="a-arr">→</div>
+    </button>
+    <div class="act-lbl">Otras opciones</div>
+    <button class="act-btn abt-pdf" onclick="soloPDF()">
+      <div class="a-icon">📄</div>
+      <div class="a-body"><div class="a-title">Solo ver / descargar PDF</div><div class="a-sub">Genera el documento sin guardar en Excel</div></div>
+      <div class="a-arr">→</div>
+    </button>
+    <button class="act-btn abt-wa" onclick="resumenWA()">
+      <div class="a-icon">💬</div>
+      <div class="a-body"><div class="a-title">Resumen por WhatsApp</div><div class="a-sub">Envía resumen completo al grupo de calidad</div></div>
+      <div class="a-arr">→</div>
+    </button>
+    <div class="act-lbl">Nueva inspección</div>
+    <button class="act-btn abt-light" onclick="nuevaLinea()">
+      <div class="a-icon">🔄</div>
+      <div class="a-body"><div class="a-title">Checklist de otra línea</div><div class="a-sub">Vuelve al inicio para seleccionar turno y esquema</div></div>
+      <div class="a-arr">→</div>
+    </button>
+  </div>
+</div>
+
+<!-- ██████ SCREEN: HISTORIAL ██████ -->
+<div class="screen" id="sc-hist">
+  <div style="padding:14px 14px 8px;display:flex;justify-content:space-between;align-items:center">
+    <div><div style="font-family:var(--display);font-size:16px;font-weight:800;color:var(--ink)">Historial</div>
+    <div style="font-size:11px;color:var(--mist);margin-top:2px">Registros guardados en este dispositivo</div></div>
+    <button onclick="limpiarHist()" style="font-size:11px;color:var(--mist);background:none;border:none;cursor:pointer">Limpiar</button>
+  </div>
+  <div class="hist-pad" id="histList" style="padding-top:0"></div>
+</div>
+
+<!-- ██████ SCREEN: CONFIG ██████ -->
+<div class="screen" id="sc-config">
+  <div class="cfg-pad">
+    <div class="cfg-blk">
+      <div class="cfg-title">📊 Excel — Power Automate</div>
+      <div class="field"><div class="fl">URL del Google Apps Script <span class="req">*</span></div>
+        <input type="url" id="cfg_url" placeholder="https://prod-XX.westus.logic.azure.com/workflows/.../triggers/manual/paths/invoke?..."/>
+        <div class="cfg-help">Pega aquí la URL HTTP POST de tu flujo de Power Automate.<br/><strong>Cómo obtenerla:</strong> Power Automate → Nuevo flujo → Desencadenador HTTP → Copiar URL del paso 1.</div>
+        <div class="cfg-status"><div class="sd" id="sDot"></div><span id="sTxt" style="color:var(--mist)">Sin configurar</span></div>
+      </div>
+      <div class="field"><div class="fl">Correo Jefe de Calidad</div>
+        <input type="email" id="cfg_mail" placeholder="calidad@comfrut.cl"/></div>
+      <button class="btn-save" onclick="saveConfig()">💾 Guardar</button>
+    </div>
+    <div class="cfg-blk">
+      <div class="cfg-title">📱 WhatsApp — Contactos de alerta NC</div>
+      <div style="font-size:12px;color:var(--mist);margin-bottom:14px;line-height:1.6">
+        Agrega nombre y número de cada persona o grupo. Al enviar una alerta NC podrás elegir a quién enviarla.
+        <br/><strong style="color:var(--ink2)">Número con código de país:</strong> +56912345678
+      </div>
+      <div id="waContactsList"></div>
+      <button onclick="agregarContactoWA()" style="width:100%;padding:11px;border-radius:var(--r-sm);border:1.5px dashed var(--border);background:transparent;font-family:var(--display);font-size:13px;font-weight:600;color:var(--mist);cursor:pointer;margin-bottom:10px">+ Agregar contacto</button>
+      <button class="btn-save" onclick="saveConfig()">💾 Guardar contactos</button>
+    </div>
+    <div class="cfg-blk">
+      <div class="cfg-title">ℹ️ Información</div>
+      <div style="font-size:12px;color:var(--mist);line-height:2.1">
+        <div><strong style="color:var(--ink2)">Código:</strong> CF/CR-ASC-017-RG001</div>
+        <div><strong style="color:var(--ink2)">Versión:</strong> 08 · 02-dic-2025</div>
+        <div><strong style="color:var(--ink2)">Costo app:</strong> <span style="color:var(--ok-txt);font-weight:700">$0 — 100% gratuito</span></div>
+        <div><strong style="color:var(--ink2)">Excel OneDrive:</strong> Gratis con Microsoft 365</div>
+        <div><strong style="color:var(--ink2)">Link para compartir:</strong> Sube a GitHub Pages (gratis)</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- NAV -->
+<div class="nav" id="navBar" style="display:none">
+  <button class="nb nb-back" id="navBack" onclick="navPrev()">← Atrás</button>
+  <button class="nb nb-next" id="navNext" onclick="navNext()">Siguiente →</button>
+</div>
+
+<!-- PDF VIEW MODAL — full screen con embed -->
+<div id="pdfViewModal" style="display:none;position:fixed;inset:0;z-index:500;flex-direction:column;background:#1a1a2e">
+  <div style="background:#0d1829;height:52px;padding:0 14px;display:flex;align-items:center;gap:10px;flex-shrink:0;border-bottom:1px solid rgba(255,255,255,.08)">
+    <div style="flex:1;font-size:11px;font-weight:600;color:rgba(255,255,255,.6);font-family:var(--mono);overflow:hidden;text-overflow:ellipsis;white-space:nowrap" id="pdfModalTopTitle">Documento Oficial</div>
+    <button onclick="closePDF()" style="background:rgba(255,255,255,.1);border:none;color:#fff;width:32px;height:32px;border-radius:8px;font-size:16px;cursor:pointer;flex-shrink:0">✕</button>
+  </div>
+  <div id="pdfFrame" style="flex:1;overflow:hidden;background:#525659"></div>
+  <div style="background:#0d1829;padding:10px 12px;display:flex;gap:8px;flex-shrink:0;border-top:1px solid rgba(255,255,255,.08)">
+    <button id="pdfSaveBtn" style="flex:2;padding:13px;border-radius:var(--r-sm);border:none;background:var(--lime);color:var(--bg);font-family:var(--display);font-size:13px;font-weight:700;cursor:pointer">⬇ Descargar PDF</button>
+    <button onclick="pdfMail()" style="flex:1;padding:13px;border-radius:var(--r-sm);border:none;background:#1565c0;color:#fff;font-family:var(--display);font-size:13px;font-weight:700;cursor:pointer">✉</button>
+    <button onclick="pdfWA()" style="flex:1;padding:13px;border-radius:var(--r-sm);border:none;background:#25d366;color:#fff;font-family:var(--display);font-size:13px;font-weight:700;cursor:pointer">💬</button>
+  </div>
+</div>
+<!-- mantener IDs legacy para compatibilidad -->
+<div id="pdfModal" style="display:none"></div>
+<div id="pdfCardTitle" style="display:none"></div>
+<div id="pdfCardSub" style="display:none"></div>
+<div id="pdfFname" style="display:none"></div>
+<div id="pdfOpenBtn" style="display:none"></div>
+<div id="pdfDownBtn" style="display:none"></div>
+<div id="pdfIosHint" style="display:none"></div>
+
+<!-- BOTTOM SHEET -->
+<div class="sh-ov" id="shOv" onclick="closeSheet(event)">
+  <div class="sh-body" onclick="event.stopPropagation()">
+    <div class="sh-handle"></div>
+    <div class="sh-title" id="shTitle"></div>
+    <div class="sh-sub" id="shSub"></div>
+    <div id="shBody"></div>
+    <button class="sh-close" onclick="closeSheet()">Cerrar</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<div class="spin-ov" id="spinOv"><div class="spin"></div><div class="spin-t" id="spinTxt">Procesando...</div></div>
+
+<!-- ████████████████████████████████
+     JS
+████████████████████████████████ -->
+<script>
+// ─── DATA ───────────────────────────────────────────────────
+const SECS = {
+  s1:{label:'Túnel Continuo (Esquema 1)',sub:'Esquema 1 · 21 ítems',color:'#3b9eff',
+      items:['Air clean','Despiedrador','Despalillador','Tina lavada de fruta','Secadoras','BBC (selector de fruta)','Tomra neón','Aspersores','Cinta descarte','Imán N°1','Elevador 1','Zaranda ingreso túnel','Cinta túnel','Cinta salida de túnel','Bühler','Elevador 2','Elevador 3','Cinta madre','Tolvas de descarga','Balanzas dinámicas','Vidrios y plásticos duros']},
+  s2:{label:'Esquema 3',sub:'14 ítems',color:'#00c695',
+      items:['Cinta metálica','Air clean','Elevador 1','Zaranda','Bühler','Aspersores','Cinta descarte','Elevador 2','Cinta de inspección','Imán N°2','Lavado de fruta','Vidrios y plásticos duros','Tolvas de descarga','Balanzas']},
+  s3:{label:'Tomra (Esquema 4)',sub:'Esquema 4 · 11 ítems',color:'#ffb020',
+      items:['Cinta de inspección','Elevador','Zaranda','Línea Desechos','Selecionadora Tomra','Línea Descarte','Elevadores','Aspersores','Cinta madre','Tolva de descarga','Vidrio y plástico duro']},
+  s4:{label:'Sala Proceso',sub:'15 ítems',color:'#a855f7',
+      items:['Motores de maquinarias','Mesas','Plataformas','Balanzas','Vidrios y plásticos duros','Equipos libres de condensación','Pisos','Cielos','Luminarias','Paredes','Zocalos','Puertas','Basureros','Lavado de mano','Bandejas en buen estado y orden correcto']}
+};
+
+// ─── STATE ──────────────────────────────────────────────────
+let selTurnoVal = '';
+let selEsqs     = [];
+let queue       = [];
+let qIdx        = 0;
+let estado      = {};   // key → {val,obs,photo}  photo = base64 or ''
+let _pdf        = null;
+let _rec        = null;
+let curScr      = 'home';
+
+// ─── INIT ────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  const now = new Date();
+  document.getElementById('f_fecha').value = now.toISOString().split('T')[0];
+  document.getElementById('f_hora').value  = now.toTimeString().slice(0,5);
+  loadConfig();
+  refreshStats();
+  // Sincronizar registros pendientes en segundo plano
+  setTimeout(sincronizarPendientes, 3000);
+});
+
+// ─── HOME: TURNO ────────────────────────────────────────────
+function selTurno(card) {
+  document.querySelectorAll('.turno-card').forEach(c => c.classList.remove('sel'));
+  card.classList.add('sel');
+  selTurnoVal = card.dataset.t;
+  checkStartReady();
+}
+
+// ─── HOME: ESQUEMA ───────────────────────────────────────────
+function selEsq(card) {
+  const s = card.dataset.s;
+  card.classList.toggle('sel');
+  if (selEsqs.includes(s)) selEsqs = selEsqs.filter(x => x !== s);
+  else selEsqs.push(s);
+  checkStartReady();
+}
+
+function checkStartReady() {
+  const btn = document.getElementById('btnStart');
+  const ok  = selTurnoVal && selEsqs.length > 0;
+  btn.disabled = !ok;
+  if (ok) {
+    const esqNames = selEsqs.map(s => SECS[s].label.split(' ')[0]).join(' + ');
+    btn.textContent = `▶ Iniciar — ${selTurnoVal} · ${esqNames}`;
+  } else if (!selTurnoVal) {
+    btn.textContent = 'Selecciona el turno';
+  } else {
+    btn.textContent = 'Selecciona al menos un esquema';
+  }
+}
+
+// ─── INICIAR ─────────────────────────────────────────────────
+function iniciar() {
+  if (!selTurnoVal || !selEsqs.length) return;
+  queue = ['s1','s2','s3','s4'].filter(s => selEsqs.includes(s));
+  qIdx  = 0;
+  estado = {};
+  // Fill read-only fields
+  document.getElementById('f_turno_ro').value = selTurnoVal;
+  document.getElementById('f_esq_ro').value   = queue.map(s => SECS[s].label).join(' + ');
+  // Badge
+  const badge = document.getElementById('tbBadge');
+  badge.textContent = selTurnoVal;
+  badge.style.display = 'block';
+  goTo('datos');
+}
+
+// ─── NAVIGATION ──────────────────────────────────────────────
+const SCR = {home:'sc-home',datos:'sc-datos',check:'sc-check',resumen:'sc-resumen',hist:'sc-hist',config:'sc-config'};
+
+function goTo(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(SCR[name]).classList.add('active');
+  curScr = name;
+  updateNav(name);
+  updateProg(name);
+  if (name==='check')   buildChecklist();
+  if (name==='resumen') { buildResumen(); setTimeout(initFirma, 80); }
+  if (name==='hist')    renderHist();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function updateNav(s) {
+  const nb = document.getElementById('navBar');
+  const bk = document.getElementById('navBack');
+  const nx = document.getElementById('navNext');
+  if (s==='home') { nb.style.display='none'; return; }
+  nb.style.display='flex'; bk.style.display='block'; nx.style.display='block';
+  nx.classList.remove('go');
+  if (s==='datos') { nx.textContent='Comenzar inspección →'; nx.classList.add('go'); }
+  else if (s==='check') {
+    nx.textContent = qIdx < queue.length-1 ? 'Siguiente sección →' : 'Ver resumen →';
+  } else if (s==='resumen') { nx.style.display='none'; }
+  else { nx.textContent='Siguiente →'; }
+}
+
+function updateProg(s) {
+  const map={home:0,datos:25,check:60,resumen:100,hist:0,config:0};
+  document.getElementById('pBar').style.width=(map[s]||0)+'%';
+}
+
+function navNext() {
+  if (curScr==='datos') { if(!validar()) return; qIdx=0; goTo('check'); }
+  else if (curScr==='check') {
+    if (qIdx < queue.length-1) { qIdx++; goTo('check'); }
+    else goTo('resumen');
+  }
+}
+function navPrev() {
+  if (curScr==='datos')  { goTo('home'); }
+  else if (curScr==='check') { qIdx>0 ? (qIdx--,goTo('check')) : goTo('datos'); }
+  else if (curScr==='resumen') { qIdx=queue.length-1; goTo('check'); }
+  else if (curScr==='hist'||curScr==='config') goTo('home');
+}
+
+// ─── VALIDATE ────────────────────────────────────────────────
+function validar() {
+  for (const [id,lbl] of [['f_sup','Supervisor'],['f_fecha','Fecha'],['f_hora','Hora'],['f_sku','SKU']]) {
+    if (!document.getElementById(id).value.trim()) { toast(`⚠ Completa: ${lbl}`); document.getElementById(id).focus(); return false; }
+  }
+  return true;
+}
+
+// ─── BUILD CHECKLIST ─────────────────────────────────────────
+function buildChecklist() {
+  const sid = queue[qIdx];
+  const sec = SECS[sid];
+  document.getElementById('chkTitle').textContent = sec.label;
+  document.getElementById('chkSub').textContent   = sec.sub;
+  document.getElementById('trail2').innerHTML = buildTrail(qIdx+1, queue.length+2);
+  updateNav('check');
+
+  const list = document.getElementById('chkList');
+  list.innerHTML = '';
+
+  // Section row
+  const sr = document.createElement('div');
+  sr.className='sec-row';
+  sr.innerHTML=`<div class="sec-line" style="background:${sec.color}"></div><div class="sec-txt">${sec.label} — C = Conforme · NC = No conforme · NA = No aplica</div>`;
+  list.appendChild(sr);
+
+  sec.items.forEach((item, idx) => {
+    const key = `${sid}_${idx}`;
+    const cur = estado[key] || {val:'',obs:'',photo:''};
+
+    // Item row
+    const row = document.createElement('div');
+    row.className = `chk-item${cur.val ? ' is-'+cur.val.toLowerCase() : ''}`;
+    row.id = `row-${key}`;
+    row.innerHTML = `
+      <div class="item-name">${item}</div>
+      <div class="cnc">
+        <button class="cb${cur.val==='C'?' C':''}" onclick="setV('${key}','C',this)">C</button>
+        <button class="cb${cur.val==='NC'?' NC':''}" onclick="setV('${key}','NC',this)">NC</button>
+        <button class="cb${cur.val==='NA'?' NA':''}" onclick="setV('${key}','NA',this)">NA</button>
+      </div>`;
+    list.appendChild(row);
+
+    // NC Drawer with photo
+    const drw = document.createElement('div');
+    drw.className = `nc-drw${cur.val==='NC'?' open':''}`;
+    drw.id = `drw-${key}`;
+    drw.innerHTML = `
+      <div class="nc-lbl">Observación / Acción correctiva</div>
+      <input type="text" id="obs-${key}" value="${cur.obs||''}" placeholder="Describe la NC y acción tomada..." oninput="setObs('${key}',this.value)"/>
+      <div class="photo-area">
+        <div class="photo-btn" onclick="triggerPhoto('${key}')">
+          <div class="photo-btn-icon">📷</div>
+          <div>
+            <div class="photo-btn-text">Adjuntar foto de la NC</div>
+            <div class="photo-btn-sub">Toca para abrir cámara o galería</div>
+          </div>
+        </div>
+        <input type="file" accept="image/*" capture="environment" id="photo-input-${key}" class="photo-input" onchange="handlePhoto('${key}',this)"/>
+        <div class="photo-preview" id="photo-prev-${key}">
+          <img id="photo-img-${key}" src="${cur.photo||''}" alt="NC foto"/>
+          <button class="photo-remove" onclick="removePhoto('${key}')">✕</button>
+        </div>
+      </div>
+      <button class="nc-wa-btn" onclick="enviarNCInstante('${key}')">
+        <span class="nc-wa-btn-icon">💬</span>
+        Enviar alerta NC por WhatsApp
+      </button>`;
+    list.appendChild(drw);
+
+    // Restore photo preview if exists
+    if (cur.photo) document.getElementById(`photo-prev-${key}`).style.display='block';
+  });
+}
+
+function setV(key, val, btn) {
+  if (!estado[key]) estado[key]={val:'',obs:'',photo:''};
+  if (estado[key].val===val) {
+    estado[key].val='';
+    btn.closest('.cnc').querySelectorAll('.cb').forEach(b=>b.className='cb');
+    document.getElementById(`row-${key}`).className='chk-item';
+    document.getElementById(`drw-${key}`).classList.remove('open');
+    return;
+  }
+  estado[key].val=val;
+  btn.closest('.cnc').querySelectorAll('.cb').forEach(b=>{b.className='cb';if(b.textContent===val)b.classList.add(val)});
+  document.getElementById(`row-${key}`).className=`chk-item${val==='C'?' is-c':val==='NC'?' is-nc':val==='NA'?' is-na':''}`;
+  const drw=document.getElementById(`drw-${key}`);
+  val==='NC' ? drw.classList.add('open') : drw.classList.remove('open');
+}
+function setObs(key,v){if(!estado[key])estado[key]={val:'NC',obs:'',photo:''};estado[key].obs=v}
+
+// ─── PHOTO HANDLING ──────────────────────────────────────────
+function triggerPhoto(key) {
+  document.getElementById(`photo-input-${key}`).click();
+}
+
+function handlePhoto(key, input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const b64 = e.target.result;
+    if (!estado[key]) estado[key]={val:'NC',obs:'',photo:''};
+    estado[key].photo = b64;
+    const prev = document.getElementById(`photo-prev-${key}`);
+    document.getElementById(`photo-img-${key}`).src = b64;
+    prev.style.display='block';
+    toast('📷 Foto adjuntada correctamente');
+  };
+  reader.readAsDataURL(file);
+}
+
+function removePhoto(key) {
+  if (estado[key]) estado[key].photo='';
+  document.getElementById(`photo-prev-${key}`).style.display='none';
+  document.getElementById(`photo-img-${key}`).src='';
+  document.getElementById(`photo-input-${key}`).value='';
+  toast('🗑 Foto eliminada');
+}
+
+// ─── TRAIL ───────────────────────────────────────────────────
+function buildTrail(active, total) {
+  return Array.from({length:total},(_,i)=>
+    `<div class="td ${i<active?'done':i===active?'active':''}"></div>`).join('');
+}
+
+// ─── SUMMARY ─────────────────────────────────────────────────
+function buildResumen() {
+  let C=0,NC=0,NA=0; const ncList=[];
+  queue.forEach(sid => SECS[sid].items.forEach((item,idx)=>{
+    const v=estado[`${sid}_${idx}`];
+    if(!v||!v.val)return;
+    if(v.val==='C')C++;
+    else if(v.val==='NC'){NC++;ncList.push({sec:SECS[sid].label,item,obs:v.obs,photo:v.photo||''});}
+    else NA++;
+  }));
+  const hasNC=NC>0;
+  document.getElementById('sumCircle').className=`sum-circle ${hasNC?'nc':'ok'}`;
+  document.getElementById('sumCircle').textContent=hasNC?'⚠️':'✅';
+  document.getElementById('sumTitle').textContent=hasNC?`${NC} No Conformidad${NC>1?'es':''}` : 'Todo conforme';
+  document.getElementById('sumSub').textContent=`${C} conformes · ${NA} no aplica · ${queue.length} sección${queue.length>1?'es':''}`;
+  document.getElementById('statsRow').innerHTML=`
+    <div class="st-card ok"><div class="st-num">${C}</div><div class="st-lbl">Conformes</div></div>
+    <div class="st-card nc"><div class="st-num">${NC}</div><div class="st-lbl">No Conf.</div></div>
+    <div class="st-card na"><div class="st-num">${NA}</div><div class="st-lbl">No Aplica</div></div>`;
+  const np=document.getElementById('ncPanel');
+  if(ncList.length){
+    np.innerHTML=`<div class="nc-panel">
+      <div class="nc-ph"><div class="nc-ph-t">No Conformidades detectadas</div><div class="nc-ph-c">${ncList.length} ítem${ncList.length>1?'s':''}</div></div>
+      ${ncList.map(n=>`<div class="nc-pi">
+        <div class="nc-pi-name">${n.item}</div>
+        <div class="nc-pi-sec">${n.sec}</div>
+        ${n.obs?`<div class="nc-pi-obs">📝 ${n.obs}</div>`:''}
+        ${n.photo?`<div class="nc-pi-photo"><img src="${n.photo}" alt="Foto NC"/></div>`:''}
+      </div>`).join('')}
+    </div>`;
+    document.getElementById('ncWaWrap').style.display='block';
+  } else {
+    np.innerHTML=`<div class="ok-banner"><div class="ok-b-i">✅</div><div class="ok-b-t">Sin No Conformidades — todo conforme</div></div>`;
+    document.getElementById('ncWaWrap').style.display='none';
+  }
+}
+
+// ─── GET RECORD ───────────────────────────────────────────────
+function getRec() {
+  const nc=[];
+  queue.forEach(sid=>SECS[sid].items.forEach((item,idx)=>{
+    const v=estado[`${sid}_${idx}`];
+    if(v&&v.val==='NC')nc.push({sec:SECS[sid].label,item,obs:v.obs,photo:v.photo||''});
+  }));
+  return {
+    id:Date.now(),
+    supervisor:document.getElementById('f_sup').value,
+    fecha:document.getElementById('f_fecha').value,
+    hora:document.getElementById('f_hora').value,
+    turno:selTurnoVal,
+    esquema:queue.map(s=>SECS[s].label).join(' + '),
+    sku:document.getElementById('f_sku').value,
+    analista:'',
+    firma:getFirmaB64(),
+    obs:document.getElementById('f_obs').value,
+    schemes:[...queue], items:{...estado}, nc
+  };
+}
+
+
+// ─── ALERTA NC INSTANTÁNEA (al marcar cada NC) ───────────────────
+function enviarNCInstante(key) {
+  const cfg = getCfg();
+  // Obtener datos del ítem actual
+  const v = estado[key] || {};
+  const obs = document.getElementById(`obs-${key}`) ? document.getElementById(`obs-${key}`).value : (v.obs||'');
+  // Encontrar nombre del ítem desde el DOM
+  const row = document.getElementById(`row-${key}`);
+  const itemName = row ? row.querySelector('.item-name').textContent : key;
+  // Datos del turno (si ya fueron completados)
+  const sup  = document.getElementById('f_sup')   ? document.getElementById('f_sup').value   : '';
+  const fecha= document.getElementById('f_fecha') ? document.getElementById('f_fecha').value : '';
+  const hora = document.getElementById('f_hora')  ? document.getElementById('f_hora').value  : '';
+  const sku  = document.getElementById('f_sku')   ? document.getElementById('f_sku').value   : '';
+  // Sección del ítem
+  const secId = key.split('_')[0];
+  const secName = SECS[secId] ? SECS[secId].label : '';
+
+  const msg = encodeURIComponent(
+    `*!! NC DETECTADA - Pre-operacional Comfrut !!*\n` +
+    `━━━━━━━━━━━━━━━━━━━━━\n` +
+    `*Item:* ${itemName}\n` +
+    `*Seccion:* ${secName}\n` +
+    (obs ? `*Obs:* ${obs}\n` : '') +
+    `\n*Turno:* ${turnoSel||'—'}  *Hora:* ${hora||'—'}\n` +
+    `*Fecha:* ${fecha ? fmtF(fecha) : '—'}\n` +
+    `*SKU:* ${sku||'—'}\n` +
+    `*Supervisor:* ${sup||'—'}\n\n` +
+    `*Accion requerida:* Revisar y gestionar correccion inmediata.\n\n` +
+    `_CF/CR-ASC-017-RG001 v08_`
+  );
+
+  abrirWAPicker(msg, 'Alerta NC — ' + itemName, 'Elige a quién enviar la alerta');
+}
+
+
+// ─── WA CONTACT PICKER ───────────────────────────────────────────
+let _waPendingMsg = '';
+
+function abrirWAPicker(msg, titulo, sub) {
+  _waPendingMsg = msg;
+  const cfg = getCfg();
+  const contactos = cfg.contactos || [];
+
+  // Si hay número configurado pero sin nombre (modo antiguo)
+  if (!contactos.length && (cfg.wa1||cfg.wa2)) {
+    if(cfg.wa1) contactos.push({nombre:'Jefe de Área', numero:cfg.wa1});
+    if(cfg.wa2) contactos.push({nombre:'Mantención', numero:cfg.wa2});
+  }
+
+  document.getElementById('waPickerTitle').textContent = titulo || 'Enviar por WhatsApp';
+  document.getElementById('waPickerSub').textContent   = sub || 'Elige a quién enviar el mensaje';
+
+  const cont = document.getElementById('waPickerContacts');
+  cont.innerHTML = '';
+
+  if (!contactos.length) {
+    // Sin contactos configurados — mostrar aviso + opción manual
+    cont.innerHTML = `
+      <div style="background:var(--nc-bg);border:1px solid var(--nc);border-radius:var(--r-sm);padding:12px 14px;margin-bottom:12px;font-size:13px;color:var(--nc-txt)">
+        No hay contactos configurados.<br/>Ve a <strong>⚙ Config → WhatsApp</strong> para agregar los números del Jefe de Área y Mantención.
+      </div>
+      <button class="wa-contact-btn" onclick="enviarWA('',_waPendingMsg)">
+        <div class="wa-contact-avatar" style="background:#25d366;font-size:22px">💬</div>
+        <div><div class="wa-contact-name">Abrir WhatsApp</div><div class="wa-contact-num">Elige el contacto manualmente</div></div>
+        <div class="wa-contact-arr">→</div>
+      </button>`;
+  } else {
+    // Opción "Enviar a todos"
+    if (contactos.length > 1) {
+      const allBtn = document.createElement('button');
+      allBtn.className = 'wa-contact-btn';
+      allBtn.style.background = 'linear-gradient(135deg,#075e54,#128c7e)';
+      allBtn.style.border = 'none';
+      allBtn.innerHTML = `<div class="wa-contact-avatar" style="background:rgba(255,255,255,.2);font-size:18px">👥</div><div><div class="wa-contact-name" style="color:#fff">Enviar a todos</div><div class="wa-contact-num" style="color:rgba(255,255,255,.7)">${contactos.length} contactos</div></div><div class="wa-contact-arr" style="color:#fff">→</div>`;
+      allBtn.onclick = () => {
+        contactos.forEach((c,i) => setTimeout(() => enviarWA(c.numero, _waPendingMsg), i*900));
+        closeWAPicker();
+      };
+      cont.appendChild(allBtn);
+    }
+    // Contactos individuales
+    contactos.forEach(c => {
+      const btn = document.createElement('button');
+      btn.className = 'wa-contact-btn';
+      const inicial = c.nombre.charAt(0).toUpperCase();
+      btn.innerHTML = `<div class="wa-contact-avatar">${inicial}</div><div><div class="wa-contact-name">${c.nombre}</div><div class="wa-contact-num">${c.numero}</div></div><div class="wa-contact-arr">→</div>`;
+      btn.onclick = () => { enviarWA(c.numero, _waPendingMsg); closeWAPicker(); };
+      cont.appendChild(btn);
+    });
+  }
+
+  document.getElementById('waPickerOverlay').classList.add('open');
+}
+
+function enviarWA(numero, msg) {
+  const n = (numero||'').replace(/[^0-9+]/g,'');
+  if (n) window.open(`https://wa.me/${n}?text=${msg}`, '_blank');
+  else   window.open(`https://wa.me/?text=${msg}`, '_blank');
+}
+
+function closeWAPicker(e) {
+  if (!e || e.target === document.getElementById('waPickerOverlay'))
+    document.getElementById('waPickerOverlay').classList.remove('open');
+}
+
+// ─── WHATSAPP NC ALERT ─────────────────────────────────────────
+function alertaNC() {
+  const rec=getRec(); if(!rec.nc.length)return;
+  const enc=encodeURIComponent(buildNCMsg(rec));
+  abrirWAPicker(enc, 'Alerta NC — ' + rec.nc.length + ' no conformidad' + (rec.nc.length>1?'es':''), 'Elige a quién enviar la alerta');
+}
+function buildNCMsg(rec) {
+  // Sin emojis para compatibilidad universal con WhatsApp
+  return `*!! ALERTA DE NO CONFORMIDAD !!*\n` +
+    `*Pre-operacional Seleccion - Comfrut*\n\n` +
+    `*Fecha:* ${fmtF(rec.fecha)}\n` +
+    `*Hora:* ${rec.hora} - *${rec.turno}*\n` +
+    `*SKU:* ${rec.sku}\n` +
+    `*Esquema:* ${rec.esquema}\n` +
+    `*Supervisor:* ${rec.supervisor}\n\n` +
+    `*${rec.nc.length} No Conformidad${rec.nc.length>1?'es':''}:*\n` +
+    rec.nc.map(n => `  - *${n.item}*${n.obs ? '\n    Obs: ' + n.obs : ''}${n.photo ? '\n    (foto en PDF adjunto)' : ''}`).join('\n') +
+    `\n\n*Accion requerida:* Gestionar correccion inmediata.` +
+    `${rec.obs ? '\nObs: _' + rec.obs + '_' : ''}\n\n` +
+    `_CF/CR-ASC-017-RG001 v08_`;
+}
+
+function resumenWA() {
+  const rec = getRec();
+  const nc = rec.nc.length > 0
+    ? `\n*NC (${rec.nc.length}):*\n` + rec.nc.map(n => `- ${n.item}${n.obs ? ': ' + n.obs : ''}`).join('\n')
+    : '\nSin No Conformidades';
+  const msg = encodeURIComponent(
+    `*Pre-operacional Seleccion | Comfrut*\n` +
+    `Fecha: ${fmtF(rec.fecha)} - ${rec.hora} - ${rec.turno}\n` +
+    `SKU: ${rec.sku} - ${rec.esquema}\n` +
+    `Supervisor: ${rec.supervisor}` +
+    nc +
+    (rec.obs ? `\nObs: ${rec.obs}` : '') +
+    `\n\n_CF/CR-ASC-017-RG001 v08_`
+  );
+  abrirWAPicker(msg, 'Resumen del turno', 'Elige a quién enviar el resumen');
+}
+
+// ─── GUARDAR + PDF ─────────────────────────────────────────────
+async function guardarYPDF() {
+  const rec=getRec(); _rec=rec;
+  const cfg=getCfg();
+
+  // ── PASO 1: Guardar local INMEDIATAMENTE (sin esperar red)
+  saveLocal(rec); refreshStats();
+
+  // ── PASO 2: Generar PDF INMEDIATAMENTE
+  showSpin('Generando PDF...');
+  await sleep(80);
+  _pdf = generarPDF(rec);
+  hideSpin();
+
+  // ── PASO 3: Mostrar PDF al supervisor sin demora
+  pdfDescargaDirecta();
+
+  // ── PASO 4: Enviar a Excel (Power Automate) EN SEGUNDO PLANO
+  if (cfg.paUrl) {
+    enviarAExcel(cfg.paUrl, rec); // sin await — corre en paralelo
+  } else {
+    toast('⚠ Configura la URL de Power Automate en ⚙');
+  }
+
+  // ── PASO 5: Alerta NC si corresponde
+  if (rec.nc.length > 0 && (cfg.wa1||cfg.wa2)) {
+    setTimeout(()=>showSheet('🚨 NC detectadas',
+      `Hay ${rec.nc.length} NC. ¿Enviar alerta al grupo de WhatsApp?`,
+      `<button class="act-btn abt-nc-wa" style="margin-top:4px" onclick="alertaNC();closeSheet()">
+        <div class="a-icon">📢</div>
+        <div class="a-body"><div class="a-title">Enviar alerta NC</div><div class="a-sub">Jefe de Área + Mantención</div></div>
+      </button>`), 1400);
+  }
+}
+
+// Envío a Excel via Power Automate — con reintentos automáticos
+async function enviarAExcel(url, rec, intento=1) {
+  try {
+    await fetch(url, {
+      method:'POST', mode:'no-cors',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify(buildPayload(rec))
+    });
+    // no-cors siempre es "opaque" — si no lanzó excepción, asumimos éxito
+    toast('📊 Sincronizado con Excel');
+    // Marcar como sincronizado en el historial local
+    marcarSincronizado(rec.id);
+  } catch(e) {
+    console.warn(`Excel intento ${intento}:`, e.message);
+    if (intento < 3) {
+      // Reintentar en 8s, 20s
+      const delays = [8000, 20000];
+      setTimeout(() => enviarAExcel(url, rec, intento+1), delays[intento-1]);
+      if (intento === 1) toast('🔄 Reintentando sincronización...');
+    } else {
+      // Guardar en cola pendiente para próxima vez
+      encolarPendiente(rec);
+      toast('⚠ Sin conexión — se sincronizará cuando haya red');
+    }
+  }
+}
+
+// Cola de registros pendientes de sincronizar
+function encolarPendiente(rec) {
+  const q = JSON.parse(localStorage.getItem('cf_pending')||'[]');
+  if (!q.find(r=>r.id===rec.id)) { q.push(rec); localStorage.setItem('cf_pending', JSON.stringify(q.slice(0,20))); }
+}
+
+function marcarSincronizado(id) {
+  const q = JSON.parse(localStorage.getItem('cf_pending')||'[]');
+  localStorage.setItem('cf_pending', JSON.stringify(q.filter(r=>r.id!==id)));
+}
+
+// Sincronizar pendientes automáticamente al abrir la app
+async function sincronizarPendientes() {
+  const cfg = getCfg();
+  if (!cfg.paUrl) return;
+  const q = JSON.parse(localStorage.getItem('cf_pending')||'[]');
+  if (!q.length) return;
+  toast(`🔄 Sincronizando ${q.length} registro${q.length>1?'s':''} pendiente${q.length>1?'s':''}...`, 3000);
+  for (const rec of q) {
+    try {
+      await fetch(cfg.paUrl,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify(buildPayload(rec))});
+      marcarSincronizado(rec.id);
+    } catch(e) { break; } // si falla uno, dejar los demás para después
+  }
+}
+
+async function soloPDF() {
+  const rec=getRec(); _rec=rec;
+  showSpin('Generando PDF oficial...'); await sleep(200);
+  _pdf=generarPDF(rec); hideSpin();
+  pdfDescargaDirecta();
+}
+
+function buildPayload(rec){
+  const out={timestamp:new Date().toISOString(),supervisor:rec.supervisor,fecha:rec.fecha,hora:rec.hora,turno:rec.turno,esquema:rec.esquema,sku:rec.sku,analista:rec.analista,obs:rec.obs,nc_count:rec.nc.length,nc_detalle:rec.nc.map(n=>n.item+(n.obs?' — '+n.obs:'')).join(' | '),schemes:rec.schemes.join(',')};
+  rec.schemes.forEach(sid=>SECS[sid].items.forEach((item,idx)=>{const v=rec.items[`${sid}_${idx}`];out[`${SECS[sid].label} | ${item}`]=v?v.val:''}));
+  return out;
+}
+
+// ─── PDF: DOWNLOAD DIRECT ─────────────────────────────────────
+function pdfDescargaDirecta() {
+  if(!_pdf||!_rec)return;
+  const fname=`PreOperacional_${_rec.fecha||'hoy'}_${(_rec.turno||'T').replace(/\s/g,'')}_${(_rec.sku||'SKU').replace(/[^a-zA-Z0-9]/g,'-')}.pdf`;
+  // Usar datauri — funciona en iOS Safari, Android Chrome y Desktop
+  const dataUri = _pdf.output('datauristring');
+  const isIOS   = /iPad|iPhone|iPod/.test(navigator.userAgent);
+
+  // Mostrar PDF embebido en el modal
+  const frame = document.getElementById('pdfFrame');
+  frame.innerHTML = '';
+  // Crear objeto embed con el data URI
+  const embed = document.createElement('embed');
+  embed.src    = dataUri;
+  embed.type   = 'application/pdf';
+  embed.style.cssText = 'width:100%;height:100%;border:none';
+  frame.appendChild(embed);
+
+  // Actualizar título del modal
+  document.getElementById('pdfModalTopTitle').textContent = fname;
+
+  // Botón guardar/compartir
+  const saveBtn = document.getElementById('pdfSaveBtn');
+  if (isIOS) {
+    saveBtn.textContent = '↑ Compartir / Guardar en Archivos';
+    saveBtn.onclick = () => {
+      // En iOS: abrir en nueva pestaña para poder compartir
+      const a = document.createElement('a');
+      a.href = dataUri; a.target = '_blank'; a.rel = 'noopener';
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    };
+  } else {
+    saveBtn.textContent = '⬇ Descargar PDF';
+    saveBtn.onclick = () => {
+      const a = document.createElement('a');
+      a.href = dataUri; a.download = fname; a.style.display = 'none';
+      document.body.appendChild(a); a.click();
+      setTimeout(()=>document.body.removeChild(a), 500);
+    };
+  }
+  document.getElementById('pdfViewModal').style.display='flex';
+}
+
+function pdfDescargar(){ pdfDescargaDirecta() }
+function closePDF(){ document.getElementById('pdfViewModal').style.display='none'; document.getElementById('pdfFrame').innerHTML=''; }
+function pdfMail(){
+  if(!_rec)return; pdfDescargar();
+  const r=_rec,cfg=getCfg();
+  const nc=r.nc.length>0?'\n\n⚠ NC:\n'+r.nc.map(n=>`• ${n.item}${n.obs?' — '+n.obs:''}${n.photo?' (foto adjunta en PDF)':''}`).join('\n'):'\n\n✅ Sin NC.';
+  const body=encodeURIComponent(`Pre-operacional Selección — Comfrut\n\nFecha: ${fmtF(r.fecha)} · ${r.hora} · ${r.turno}\nSKU: ${r.sku}\nEsquema: ${r.esquema}\nSupervisor: ${r.supervisor}`+nc+(r.obs?`\n\nObs: ${r.obs}`:'')+'\n\n(Adjuntar el PDF descargado)\n\nCF/CR-ASC-017-RG001 v08');
+  const subj=encodeURIComponent(`Pre-operacional | ${fmtF(r.fecha)} | ${r.turno} | ${r.sku}`);
+  setTimeout(()=>{window.location.href=`mailto:${cfg.emailJefe||''}?subject=${subj}&body=${body}`},700);
+  toast('📧 Abriendo correo — adjunta el PDF');
+}
+function pdfWA() {
+  // WhatsApp no permite recibir archivos desde web directamente.
+  // Flujo correcto: descargar PDF → abrir WA → adjuntar desde galería.
+  if (_pdf && _rec) pdfDescargar(); // primero descarga el PDF
+  const r = _rec || {};
+  const nc = r.nc && r.nc.length > 0
+    ? `\n*NC (${r.nc.length}):*\n` + r.nc.map(n => `- ${n.item}${n.obs ? ': ' + n.obs : ''}`).join('\n')
+    : '\nSin No Conformidades';
+  const msg = encodeURIComponent(
+    `*Pre-operacional Seleccion | Comfrut*\n` +
+    `Fecha: ${fmtF(r.fecha||'')} - ${r.hora||''} - ${r.turno||''}\n` +
+    `SKU: ${r.sku||''} - ${r.esquema||''}\n` +
+    `Supervisor: ${r.supervisor||''}` +
+    nc +
+    (r.obs ? `\nObs: ${r.obs}` : '') +
+    `\n\n*PDF:* El archivo se descargo automaticamente.` +
+    `\nAdjuntalo desde tu carpeta Descargas antes de enviar.\n\n` +
+    `_CF/CR-ASC-017-RG001 v08_`
+  );
+  setTimeout(() => abrirWAPicker(msg, 'Compartir registro', 'Elige a quién enviar el resumen'), 800);
+  toast('PDF descargado — adjuntalo en WhatsApp');
+}
+
+// ─── LOCAL / CONFIG ────────────────────────────────────────────
+function saveLocal(rec){const h=JSON.parse(localStorage.getItem('cf_h')||'[]');h.unshift(rec);localStorage.setItem('cf_h',JSON.stringify(h.slice(0,60)))}
+function refreshStats(){
+  const h=JSON.parse(localStorage.getItem('cf_h')||'[]');
+  document.getElementById('hsReg').textContent=h.length;
+  if(h.length) document.getElementById('hsTurno').textContent=h[0].turno||'—';
+  const cfg=getCfg(),el=document.getElementById('hsSh');
+  if(cfg.paUrl){el.textContent='✓';el.style.color='var(--ok)';el.style.fontSize='18px'}
+  else{el.textContent='—';el.style.color='rgba(255,255,255,.28)';el.style.fontSize='17px'}
+}
+function renderHist(){
+  const h=JSON.parse(localStorage.getItem('cf_h')||'[]');
+  const pending=JSON.parse(localStorage.getItem('cf_pending')||'[]');
+  const c=document.getElementById('histList');
+  let html='';
+  if(pending.length){
+    html+=`<div style="background:#fff8e6;border:1.5px solid #ffb020;border-radius:var(--r-md);padding:10px 14px;margin-bottom:10px;display:flex;align-items:center;gap:8px">
+      <span style="font-size:18px">🔄</span>
+      <div>
+        <div style="font-family:var(--display);font-size:12px;font-weight:700;color:#7a5500">${pending.length} registro${pending.length>1?'s':''} pendiente${pending.length>1?'s':''} de sincronizar</div>
+        <div style="font-size:11px;color:#9a7020;margin-top:1px">Se enviarán a Excel automáticamente cuando haya conexión.</div>
+      </div>
+    </div>`;
+  }
+  if(!h.length){c.innerHTML=html+`<div class="empty-s"><div class="empty-i">📭</div><div class="empty-t">No hay registros aún.</div></div>`;return}
+  c.innerHTML=html+h.map(r=>{
+    const isPending=pending.find(p=>p.id===r.id);
+    return`<div class="hist-item ${r.nc&&r.nc.length?'nc':''}">
+      <div class="hi-head"><div><div class="hi-date">${fmtF(r.fecha)} · ${r.hora} · ${r.turno}</div><div class="hi-meta">SKU: ${r.sku||'—'} · ${r.supervisor||'—'} · Turno: ${r.turno||'—'}${isPending?' · Pendiente Excel':' · Excel'}</div></div>
+      <div class="hi-badge ${r.nc&&r.nc.length?'nc':'ok'}">${r.nc&&r.nc.length?`⚠ ${r.nc.length} NC`:'✓ OK'}</div></div>
+      ${r.nc&&r.nc.length?`<div class="hi-ncs">${r.nc.map(n=>`<div>• ${n.item}${n.obs?' — '+n.obs:''}${n.photo?' 📷':''}</div>`).join('')}</div>`:''}
+    </div>`}).join('');
+}
+function limpiarHist(){if(confirm('¿Eliminar todo el historial local?')){localStorage.removeItem('cf_h');renderHist();refreshStats();toast('🗑 Historial eliminado')}}
+
+function saveConfig(){
+  const contactRows = document.querySelectorAll('.wa-cfg-row');
+  const contactos = [];
+  contactRows.forEach(row => {
+    const inputs = row.querySelectorAll('input');
+    const nombre = inputs[0] ? inputs[0].value.trim() : '';
+    const numero = inputs[1] ? inputs[1].value.trim().replace(/[^0-9+]/g,'') : '';
+    if (nombre && numero) contactos.push({nombre, numero});
+  });
+  const cfg={
+    paUrl: document.getElementById('cfg_url').value.trim(),
+    emailJefe: document.getElementById('cfg_mail').value.trim(),
+    contactos: contactos,
+    wa1: contactos[0]?contactos[0].numero:'',
+    wa2: contactos[1]?contactos[1].numero:''
+  };
+  localStorage.setItem('cf_cfg',JSON.stringify(cfg));
+  updCfgStatus(cfg); refreshStats();
+  toast('Guardado — ' + contactos.length + ' contacto' + (contactos.length!==1?'s':'') + ' WA');
+}
+function loadConfig(){
+  const cfg=getCfg();
+  document.getElementById('cfg_url').value=cfg.paUrl||'';
+  document.getElementById('cfg_mail').value=cfg.emailJefe||'';
+  updCfgStatus(cfg);
+  // Migrar contactos del formato antiguo
+  let contactos = cfg.contactos||[];
+  if (!contactos.length) {
+    if (cfg.wa1) contactos.push({nombre:'Jefe de Área', numero:cfg.wa1});
+    if (cfg.wa2) contactos.push({nombre:'Mantención', numero:cfg.wa2});
+  }
+  renderContactosCfg(contactos);
+}
+function renderContactosCfg(contactos){
+  const list=document.getElementById('waContactsList');
+  if(!list)return;
+  list.innerHTML='';
+  const items = contactos.length ? contactos : [{nombre:'',numero:''}];
+  items.forEach(c=>{
+    const row=document.createElement('div');
+    row.className='wa-cfg-row';
+    row.innerHTML=`<input type="text" placeholder="Nombre (ej: Jefe Area)" value="${c.nombre||''}"/><input type="tel" placeholder="+56912345678" value="${c.numero||''}"/><button class="wa-cfg-del" onclick="eliminarContactoWA(this)">✕</button>`;
+    list.appendChild(row);
+  });
+}
+function agregarContactoWA(){
+  const list=document.getElementById('waContactsList');
+  if(!list)return;
+  const row=document.createElement('div');
+  row.className='wa-cfg-row';
+  row.innerHTML=`<input type="text" placeholder="Nombre (ej: Mantencion)"/><input type="tel" placeholder="+56912345678"/><button class="wa-cfg-del" onclick="eliminarContactoWA(this)">✕</button>`;
+  list.appendChild(row);
+  row.querySelector('input').focus();
+}
+function eliminarContactoWA(btn){
+  const list=document.getElementById('waContactsList');
+  btn.closest('.wa-cfg-row').remove();
+  if(!list.children.length) agregarContactoWA();
+}
+function getCfg(){try{return JSON.parse(localStorage.getItem('cf_cfg')||'{}')}catch{return{}}}
+function updCfgStatus(cfg){const d=document.getElementById('sDot'),t=document.getElementById('sTxt');if(cfg.paUrl){d.className='sd ok';t.textContent='Conectado';t.style.color='var(--ok)'}else{d.className='sd';t.textContent='Sin configurar';t.style.color='var(--mist)'}}
+
+// ─── PDF ENGINE ────────────────────────────────────────────────
+function generarPDF(rec){
+  const {jsPDF}=window.jspdf;
+  const doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+  const ML=10,MT=10,CW=190,PH=297;
+  const INK=[10,22,40],BLUE=[26,86,118],MID=[91,141,184],LBLUE=[200,220,240];
+  const WHITE=[255,255,255],LGREY=[244,248,252],DGREY=[55,75,100];
+  const OK=[0,198,149],NC=[220,50,50],NA=[140,160,175];
+  const OK_BG=[230,250,244],NC_BG=[254,240,240],NA_BG=[242,245,248];
+
+  const sf=(s,z,c)=>{doc.setFont('helvetica',s);doc.setFontSize(z);doc.setTextColor(...c)};
+  const fr=(x,y,w,h,c)=>{doc.setFillColor(...c);doc.rect(x,y,w,h,'F')};
+  const dr=(x,y,w,h,c,lw)=>{doc.setDrawColor(...c);doc.setLineWidth(lw||.2);doc.rect(x,y,w,h,'S')};
+  const ln=(x1,y1,x2,y2,c,lw)=>{doc.setDrawColor(...c);doc.setLineWidth(lw||.15);doc.line(x1,y1,x2,y2)};
+
+  function hdr(pg,tot){
+    let y=MT;const lw=28,mw=60,tw=CW-lw-mw;
+    fr(ML,y,CW,22,WHITE);dr(ML,y,CW,22,INK,.4);
+    ln(ML+lw,y,ML+lw,y+22,BLUE,.3);ln(ML+lw+tw,y,ML+lw+tw,y+22,BLUE,.3);
+    sf('bold',9,INK);doc.text('Comfrut',ML+lw/2,y+7,{align:'center'});
+    sf('italic',5.5,[120,130,145]);doc.text('Safety Always',ML+lw/2,y+11,{align:'center'});
+    sf('bold',7.5,INK);doc.text('SISTEMA DE GESTION INTEGRADO',ML+lw+tw/2,y+5.5,{align:'center'});
+    sf('italic',5.5,[100,115,130]);doc.text('INTEGRATED MANAGEMENT SYSTEM',ML+lw+tw/2,y+9,{align:'center'});
+    sf('bold',8,BLUE);doc.text(doc.splitTextToSize('Control pre-operacional de infraestructura en proceso de selección',tw-4),ML+lw+tw/2,y+14,{align:'center'});
+    const mx=ML+lw+tw;
+    [['Código:','CF/CR-ASC-017-RG001'],['Fecha creación:','01-feb-2022'],['Fecha última mod:','02-dic-2025'],['Fecha aprobación:','02-dic-2025'],['Versión:','08'],['Página:',`${pg} de ${tot}`]].forEach(([k,v],i)=>{const ry=y+2.2+i*3.2;sf('bold',5.2,BLUE);doc.text(k,mx+2,ry);sf('normal',5.2,DGREY);doc.text(v,mx+21,ry)});
+    return y+23;
+  }
+  function nomenRow(y,r){
+    const h=18,nw=52,sw=76,fw=CW-nw-sw;
+    fr(ML,y,CW,h,WHITE);dr(ML,y,CW,h,INK,.3);
+    fr(ML,y,nw/2,5.5,INK);fr(ML+nw/2,y,nw/2,5.5,INK);
+    sf('bold',5.2,WHITE);doc.text('NOMENCLATURA',ML+nw/4,y+3.8,{align:'center'});doc.text('ESQUEMAS',ML+nw*3/4,y+3.8,{align:'center'});
+    [['C  Conforme','1'],['NC  No conforme','3'],['NA  No aplica','4']].forEach(([a,b],i)=>{sf('normal',6,DGREY);doc.text(a,ML+2,y+7+i*3.5);doc.text(b,ML+nw/2+4,y+7+i*3.5)});
+    fr(ML+nw,y,sw,5.5,INK);sf('bold',5.2,WHITE);doc.text('SKU PROCESADO',ML+nw+sw/2,y+3.8,{align:'center'});
+    sf('bold',7.5,DGREY);doc.text(r.sku||'',ML+nw+3,y+12);
+    ln(ML+nw,y,ML+nw,y+h,BLUE,.2);ln(ML+nw+sw,y,ML+nw+sw,y+h,BLUE,.2);
+    const fx=ML+nw+sw,fh=h/3;
+    ['FECHA','HORA','TURNO'].forEach((l,i)=>{fr(fx,y+i*fh,fw/3,fh,INK);sf('bold',5.2,WHITE);doc.text(l,fx+fw/6,y+i*fh+fh*.7,{align:'center'})});
+    [(r.fecha?fmtF(r.fecha):''),r.hora||'',r.turno||''].forEach((v,i)=>{sf('normal',6.5,DGREY);doc.text(v,fx+fw/3+2,y+i*fh+fh*.7)});
+    return y+h+2;
+  }
+  const CX=[ML,ML+70,ML+88,ML+148,ML+168],CW2=[70,18,60,20,CW-70-18-60-20];
+  function colHdr(y){
+    const h=8;
+    [['IMPLEMENTOS A REVISAR\nImplements to check',0],['C/NC/NA',1],['OBSERVACIÓN\nComments',2],['ACCIÓN CORRECTIVA\nCorrective actions',3],['C/NC/NA',4]].forEach(([t,i])=>{
+      fr(CX[i],y,CW2[i],h,INK);dr(CX[i],y,CW2[i],h,[100,120,140],.1);
+      const ls=t.split('\n');sf('bold',5.2,WHITE);
+      if(ls.length>1){doc.text(ls[0],CX[i]+CW2[i]/2,y+3,{align:'center'});sf('normal',4.2,[190,200,210]);doc.text(ls[1],CX[i]+CW2[i]/2,y+6,{align:'center'})}
+      else doc.text(ls[0],CX[i]+CW2[i]/2,y+h/2+1,{align:'center'})});
+    return y+h;
+  }
+  function secHdr(y,title){fr(ML,y,CW,6.5,LBLUE);dr(ML,y,CW,6.5,[160,190,215],.1);doc.setDrawColor(...MID);doc.setLineWidth(.5);doc.line(ML,y,ML,y+6.5);sf('bold',7,BLUE);doc.text(title,ML+3,y+4.5);return y+6.5}
+  function itemRow(y,item,val,obs,ri){
+    const h=5.5,bg=ri%2===0?WHITE:LGREY;
+    fr(ML,y,CW,h,bg);ln(ML,y+h,ML+CW,y+h,[215,225,235],.1);
+    CX.slice(1).forEach(x=>ln(x,y,x,y+h,[215,225,235],.1));
+    sf('normal',6.5,DGREY);doc.text(doc.splitTextToSize(item,CW2[0]-4),ML+2,y+3.8);
+    if(val){const tc=val==='C'?OK:val==='NC'?NC:NA,bg2=val==='C'?OK_BG:val==='NC'?NC_BG:NA_BG;
+      fr(CX[1]+2,y+.8,CW2[1]-4,h-1.6,bg2);sf('bold',6.5,tc);doc.text(val,CX[1]+CW2[1]/2,y+3.8,{align:'center'});
+      fr(CX[4]+2,y+.8,CW2[4]-4,h-1.6,bg2);sf('bold',6.5,tc);doc.text(val,CX[4]+CW2[4]/2,y+3.8,{align:'center'})}
+    if(obs&&val==='NC'){sf('normal',5,[180,50,40]);doc.text(doc.splitTextToSize(obs,CW2[2]-3),CX[2]+2,y+3.8)}
+    return y+h;
+  }
+  // Photo row
+  function photoRow(y,photoB64){
+    try{
+      const imgH=28;
+      fr(ML,y,CW,imgH+4,NC_BG);
+      sf('bold',5.5,[180,50,40]);doc.text('📷 Evidencia fotográfica:',ML+2,y+3.5);
+      doc.addImage(photoB64,'JPEG',ML+2,y+5,40,imgH-5);
+      return y+imgH+6;
+    }catch(e){return y}
+  }
+  function docFooter(y){
+    const h=8,w3=CW/3;fr(ML,y,CW,h,[240,245,250]);dr(ML,y,CW,h,INK,.3);
+    [['Creado y modificado por:\nÁrea de Inocuidad',0],['Revisado por:\nSupervisor de Inocuidad',1],['Aprobado por:\nJefe de calidad e Inocuidad',2]].forEach(([t,i])=>{
+      if(i)ln(ML+w3*i,y,ML+w3*i,y+h,INK,.3);const[a,b]=t.split('\n');
+      sf('normal',5.5,DGREY);doc.text(a,ML+w3*i+w3/2,y+2.8,{align:'center'});sf('bold',6,DGREY);doc.text(b,ML+w3*i+w3/2,y+5.8,{align:'center'})});
+  }
+  function drawSigs(y,r){
+    const h1=5,h2=14,w1=CW*.65,w2=CW*.35;
+    // Fila 1 — Analista + Firma (con imagen si existe)
+    fr(ML,y,w1,h1,INK);fr(ML+w1,y,w2,h1,INK);
+    sf('bold',5.2,WHITE);
+    doc.text('NOMBRE ANALISTA DE CALIDAD',ML+w1/2,y+3.5,{align:'center'});
+    doc.text('FIRMA',ML+w1+w2/2,y+3.5,{align:'center'});
+    fr(ML,y+h1,CW,h2,WHITE);dr(ML,y,CW,h1+h2,INK,.3);
+    if(r.firma){try{doc.addImage(r.firma,'PNG',ML+w1+2,y+h1+1,w2-4,h2-2);}catch(e){}}
+    y+=h1+h2+3;
+    // Fila 2 — Verificador + Fecha y Firma
+    fr(ML,y,w1,h1,INK);fr(ML+w1,y,w2,h1,INK);
+    sf('bold',5.2,WHITE);
+    doc.text('NOMBRE SUPERVISOR',ML+w1/2,y+3.5,{align:'center'});
+    doc.text('FECHA Y FIRMA',ML+w1+w2/2,y+3.5,{align:'center'});
+    fr(ML,y+h1,CW,h2,WHITE);dr(ML,y,CW,h1+h2,INK,.3);
+    sf('normal',7,DGREY);doc.text(r.supervisor||'',ML+3,y+h1+8);
+    doc.text(fmtF(r.fecha)+(r.hora?' · '+r.hora:''),ML+w1+3,y+h1+8);
+    return y+h1+h2+3;
+  }
+
+  // Build entries
+  const entries=[];
+  (rec.schemes||[]).forEach(sid=>{
+    if(!SECS[sid])return;
+    entries.push({type:'sec',title:SECS[sid].label});
+    SECS[sid].items.forEach((item,idx)=>{
+      const v=rec.items[`${sid}_${idx}`];
+      entries.push({type:'item',item,val:v?v.val:'',obs:v?v.obs:'',photo:v?v.photo||'':''});
+    });
+  });
+
+  // Page 1
+  let y=hdr(1,2),ri=0,p2=0;
+  y=nomenRow(y,rec);y=colHdr(y);
+  for(let i=0;i<entries.length;i++){
+    const e=entries[i];
+    const need=e.type==='sec'?6.5:5.5+(e.photo?34:0);
+    if(y+need>PH-18){p2=i;break;}
+    if(e.type==='sec') y=secHdr(y,e.title);
+    else{ y=itemRow(y,e.item,e.val,e.obs,ri++); if(e.photo&&e.val==='NC') y=photoRow(y,e.photo); }
+    if(i===entries.length-1)p2=entries.length;
+  }
+  docFooter(PH-16);
+
+  // Page 2
+  doc.addPage();y=hdr(2,2);y=colHdr(y);ri=0;
+  for(let i=p2;i<entries.length;i++){
+    const e=entries[i];
+    if(y+(e.type==='sec'?6.5:5.5)>PH-95)break;
+    if(e.type==='sec') y=secHdr(y,e.title);
+    else{ y=itemRow(y,e.item,e.val,e.obs,ri++); if(e.photo&&e.val==='NC'&&y+34<PH-95) y=photoRow(y,e.photo); }
+  }
+  y+=4;
+  ['Se debe realizar una inspección visual de todas las áreas y componentes mencionados, éstas deben encontrarse en óptimas condiciones.',
+   'Este registro debe ejecutarse al comienzo de cada turno y cada vez que se cambie el producto a procesar.',
+   'Inspeccionar minuciosamente vidrios y plásticos duros en cada área y componente.',
+   'Desviaciones: notificar de inmediato a jefes y supervisores de calidad, inocuidad, producción y mantención.'].forEach(t=>{
+    sf('normal',5.5,DGREY);const ls=doc.splitTextToSize('• '+t,CW-6);doc.text(ls,ML+3,y);y+=ls.length*3.5+1});
+  y+=3;
+  const nw1=50,nw2=CW-nw1;
+  fr(ML,y,nw1,5.5,INK);fr(ML+nw1,y,nw2,5.5,INK);
+  sf('bold',5.2,WHITE);doc.text('NO CONFORMIDAD',ML+nw1/2,y+3.8,{align:'center'});doc.text('ACCIÓN CORRECTIVA',ML+nw1+nw2/2,y+3.8,{align:'center'});
+  y+=5.5;
+  [['Quiebre de un componente.','Verificar que no falte ningún trozo. Aviso inmediato. Contacto con producto: pallets "On Hold". Mantención gestiona arreglo.'],
+   ['Desprendimiento de componente.','Identificar contacto con producto. Buscar en área. Sin encontrar: pallets "On Hold". Mantención gestiona.'],
+   ['Mal estado en área de proceso.','Aviso inmediato y registro. Supervisores gestionan mejoras.']].forEach(([nc,ac],i)=>{
+    const rh=11,bg=i%2===0?WHITE:LGREY;fr(ML,y,CW,rh,bg);dr(ML,y,CW,rh,[210,220,228],.1);ln(ML+nw1,y,ML+nw1,y+rh,[180,200,215],.1);
+    sf('bold',6,BLUE);doc.text(doc.splitTextToSize(nc,nw1-4),ML+2,y+3.8);sf('normal',5.5,DGREY);doc.text(doc.splitTextToSize(ac,nw2-4),ML+nw1+2,y+3.8);y+=rh});
+  if(rec.obs){y+=3;fr(ML,y,CW,5,INK);sf('bold',5.2,WHITE);doc.text('OBSERVACIONES GENERALES',ML+CW/2,y+3.6,{align:'center'});y+=5;fr(ML,y,CW,10,WHITE);dr(ML,y,CW,10,[200,215,225],.2);sf('normal',6.5,DGREY);doc.text(doc.splitTextToSize(rec.obs,CW-6),ML+3,y+4);y+=12}
+  y+=3;y=drawSigs(y,rec);y+=3;docFooter(y);
+  return doc;
+}
+
+// ─── NUEVA LÍNEA ──────────────────────────────────────────────────
+function nuevaLinea() {
+  // Resetear selecciones de turno y esquema
+  turnoSel = ''; esqsSel = []; queue = []; qIdx = 0; estado = {};
+  document.querySelectorAll('.turno-card').forEach(c => c.classList.remove('sel'));
+  document.querySelectorAll('.scheme-card').forEach(c => c.classList.remove('sel'));
+  document.getElementById('btnStart').disabled = true;
+  document.getElementById('btnStart').textContent = 'Selecciona turno y esquema';
+  document.getElementById('tbBadge').style.display = 'none';
+  document.getElementById('tbBadge').textContent = '';
+  // Limpiar campos de datos
+  document.getElementById('f_turno_ro').value = '';
+  document.getElementById('f_esq_ro').value = '';
+  document.getElementById('f_obs').value = '';
+  goTo('home');
+  toast('Selecciona el turno y esquema para la próxima línea');
+}
+
+// ─── FIRMA DIGITAL ────────────────────────────────────────────────
+let _sigCanvas=null,_sigCtx=null,_drawing=false,_hasFirma=false;
+function initFirma(){
+  const canvas=document.getElementById('sigCanvas');
+  if(!canvas)return;
+  _sigCanvas=canvas; _hasFirma=false;
+  const dpr=window.devicePixelRatio||1;
+  const w=canvas.offsetWidth||canvas.parentElement.offsetWidth||300;
+  canvas.width=w*dpr; canvas.height=110*dpr; canvas.style.height='110px';
+  _sigCtx=canvas.getContext('2d');
+  _sigCtx.scale(dpr,dpr);
+  _sigCtx.strokeStyle='#0a1628'; _sigCtx.lineWidth=2.2; _sigCtx.lineCap='round'; _sigCtx.lineJoin='round';
+  canvas.addEventListener('touchstart',e=>{e.preventDefault();startDraw(e.touches[0]);},{passive:false});
+  canvas.addEventListener('touchmove', e=>{e.preventDefault();doDraw(e.touches[0]);},{passive:false});
+  canvas.addEventListener('touchend',  e=>{e.preventDefault();stopDraw();},{passive:false});
+  canvas.addEventListener('mousedown', e=>startDraw(e));
+  canvas.addEventListener('mousemove', e=>doDraw(e));
+  canvas.addEventListener('mouseup',   ()=>stopDraw());
+  canvas.addEventListener('mouseleave',()=>stopDraw());
+}
+function getPos(e){const r=_sigCanvas.getBoundingClientRect();return{x:(e.clientX||e.pageX)-r.left,y:(e.clientY||e.pageY)-r.top};}
+function startDraw(e){_drawing=true;_hasFirma=true;const p=getPos(e);_sigCtx.beginPath();_sigCtx.moveTo(p.x,p.y);const h=document.getElementById('sigHint');if(h)h.style.display='none';}
+function doDraw(e){if(!_drawing)return;const p=getPos(e);_sigCtx.lineTo(p.x,p.y);_sigCtx.stroke();_sigCtx.beginPath();_sigCtx.moveTo(p.x,p.y);}
+function stopDraw(){_drawing=false;if(_sigCtx)_sigCtx.beginPath();}
+function limpiarFirma(){if(!_sigCanvas||!_sigCtx)return;const dpr=window.devicePixelRatio||1;_sigCtx.clearRect(0,0,_sigCanvas.width/dpr,_sigCanvas.height/dpr);_hasFirma=false;const h=document.getElementById('sigHint');if(h)h.style.display='block';}
+function getFirmaB64(){if(!_sigCanvas||!_hasFirma)return'';return _sigCanvas.toDataURL('image/png');}
+
+// ─── UTILS ─────────────────────────────────────────────────────
+function fmtF(d){if(!d)return'';try{const[y,m,dy]=d.split('-');return`${dy}-${['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'][parseInt(m)-1]}-${y}`}catch{return d}}
+function showSheet(t,s,b=''){document.getElementById('shTitle').textContent=t;document.getElementById('shSub').textContent=s;document.getElementById('shBody').innerHTML=b;document.getElementById('shOv').classList.add('open')}
+function closeSheet(e){if(!e||e.target===document.getElementById('shOv'))document.getElementById('shOv').classList.remove('open')}
+function showSpin(t){document.getElementById('spinTxt').textContent=t||'';document.getElementById('spinOv').classList.add('show')}
+function hideSpin(){document.getElementById('spinOv').classList.remove('show')}
+function toast(msg,d=2800){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),d)}
+function sleep(ms){return new Promise(r=>setTimeout(r,ms))}
+</script>
+
+<!-- WA CONTACT PICKER -->
+<div class="wa-picker-overlay" id="waPickerOverlay" onclick="closeWAPicker(event)">
+  <div class="wa-picker-sheet" onclick="event.stopPropagation()">
+    <div class="wa-picker-handle"></div>
+    <div class="wa-picker-title" id="waPickerTitle">Enviar alerta NC</div>
+    <div class="wa-picker-sub" id="waPickerSub">Elige a quién enviar el mensaje</div>
+    <div id="waPickerContacts"></div>
+    <button class="wa-picker-cancel" onclick="closeWAPicker()">Cancelar</button>
+  </div>
+</div>
+</body>
+</html>
